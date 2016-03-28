@@ -214,7 +214,7 @@ fi
   fi
 
 # run depmod
-  MODVER=$(basename $(ls -d $INSTALL/lib/modules/*))
+  MODVER=$(get_module_dir)
   find $INSTALL/lib/modules/$MODVER/ -name *.ko | \
     sed -e "s,$INSTALL/lib/modules/$MODVER/,," > $INSTALL/lib/modules/$MODVER/modules.order
   $ROOT/$TOOLCHAIN/bin/depmod -b $INSTALL $MODVER 2> /dev/null
