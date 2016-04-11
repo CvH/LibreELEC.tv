@@ -1,57 +1,63 @@
 ################################################################################
-#      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
+#      This file is part of LibreELEC - https://LibreELEC.tv
+#      Copyright (C) 2016 Team LibreELEC
 #
-#  OpenELEC is free software: you can redistribute it and/or modify
+#  LibreELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 2 of the License, or
 #  (at your option) any later version.
 #
-#  OpenELEC is distributed in the hope that it will be useful,
+#  LibreELEC is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
+#  along with LibreELEC.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-PKG_NAME="tbs-linux-drivers"
-PKG_VERSION="160126"
+PKG_NAME="media_build"
+PKG_VERSION="a9c762b"
+
+# choose "LATEST" or a date like "2014-12-01-e8bd888" for the driver package
+# chose from here http://linuxtv.org/downloads/drivers/
+
+#MEDIA_BUILD_VERSION="2016-03-29-d3f519301944"
+MEDIA_BUILD_VERSION="2016-05-02-68af062b5f38"
+
 PKG_REV="1"
-PKG_ARCH="x86_64"
+PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="http://www.tbsdtv.com/english/Download.html"
-PKG_URL="http://www.tbsdtv.com/download/document/common/tbs-linux-drivers_v${PKG_VERSION}.zip"
-PKG_SOURCE_DIR="$PKG_NAME"
-PKG_DEPENDS_TARGET="toolchain linux"
-PKG_NEED_UNPACK="$LINUX_DEPENDS"
+PKG_SITE="http://git.linuxtv.org/media_build.git"
+PKG_URL="http://mycvh.de/openelec/$PKG_NAME/$PKG_NAME-${PKG_VERSION}.tar.xz"
+PKG_DEPENDS_TARGET=""
+PKG_BUILD_DEPENDS_TARGET="toolchain linux"
 PKG_PRIORITY="optional"
 PKG_SECTION="driver"
-PKG_SHORTDESC="Linux TBS tuner drivers"
-PKG_LONGDESC="Linux TBS tuner drivers"
+PKG_SHORTDESC="Build system to use the latest experimental drivers/patches from latest Kernel version"
+PKG_LONGDESC="Build system to use the latest experimental drivers/patches from latest Kernel version"
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
-post_unpack() {
-  tar xjf $ROOT/$PKG_BUILD/linux-tbs-drivers.tar.bz2 -C $ROOT/$PKG_BUILD
-  chmod -R u+rwX $ROOT/$PKG_BUILD/linux-tbs-drivers/*
+pre_make_target() {
+  export KERNEL_VER=$(get_module_dir)
+  # dont use our LDFLAGS, use the KERNEL LDFLAGS
+  export LDFLAGS=""
 }
 
 make_target() {
-  cd $ROOT/$PKG_BUILD/linux-tbs-drivers
-  ./v4l/tbs-x86_64.sh
-  LDFLAGS="" make DIR=$(kernel_path) prepare
-  LDFLAGS="" make DIR=$(kernel_path)
+  $SED -i  -e "/^LATEST_TAR/s/-LATEST/-$MEDIA_BUILD_VERSION/g" linux/Makefile
+  make VER=$KERNEL_VER SRCDIR=$(kernel_path) -C linux/ download
+  make VER=$KERNEL_VER SRCDIR=$(kernel_path) -C linux/ untar
+  make VER=$KERNEL_VER SRCDIR=$(kernel_path) stagingconfig
+  make VER=$KERNEL_VER SRCDIR=$(kernel_path)
 }
 
 makeinstall_target() {
-  mkdir -p $INSTALL/lib/modules/$(get_module_dir)/updates/tbs
-  find $ROOT/$PKG_BUILD/linux-tbs-drivers/ -name \*.ko -exec cp {} $INSTALL/lib/modules/$(get_module_dir)/updates/tbs \;
-  mkdir -p $INSTALL/lib/firmware/
-  cp $ROOT/$PKG_BUILD/*.fw $INSTALL/lib/firmware/
+  mkdir -p $INSTALL/lib/modules/$KERNEL_VER/updates/media_build
+  find $ROOT/$PKG_BUILD/v4l/ -name \*.ko -exec strip --strip-debug {} \;
+  find $ROOT/$PKG_BUILD/v4l/ -name \*.ko -exec cp {} $INSTALL/lib/modules/$KERNEL_VER/updates/media_build \;
 }
-
 
 pre_install() {
   # modules are installed under this name

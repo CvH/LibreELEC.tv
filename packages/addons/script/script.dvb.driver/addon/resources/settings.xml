@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category>
+        <setting label="[only for Generic] TBS Cards - proprietary Drivers" type="lsep"/>
+        <setting label="Official TBS Drivers" type="action" action="RunScript(script.dvb.driver, tbs)"/>
+        <setting label="Official TBS Drivers for DVB-C" type="action" action="RunScript(script.dvb.driver, tbsdvbc)"/>
+        <setting label="Official TBS OSS Drivers (TBS6205,6904,6909)" type="action" action="RunScript(script.dvb.driver, tbs_oss)"/>
+        <setting label="CrazyCat (Official TBS Driver + additions)" type="action" action="RunScript(script.dvb.driver, crazycat)"/>
+        <setting label="Digital Devices" type="action" action="RunScript(script.dvb.driver, dddvbcc)"/>
+        <setting label="DVBSky DVB-C Drivers" type="action" action="RunScript(script.dvb.driver, dvbskyc)"/>
+        <setting label="[Generic and Rpi1/2/3] TBS Cards - Open Source Drivers" type="lsep"/>
+        <setting label="Ljalves-CC Drivers (Ljalves + additions from CrazyCat)" type="action" action="RunScript(script.dvb.driver, ljalvescc)"/>
+        <setting label="[Generic and Rpi1/2/3] For every Card - DVB Drivers from latest Kernel" type="lsep"/>
+        <setting label="Media_Build" type="action" action="RunScript(script.dvb.driver, mediabuild)"/>
+    </category>
+</settings>

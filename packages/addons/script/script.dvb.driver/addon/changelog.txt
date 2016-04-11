@@ -1,0 +1,10 @@
+1.2
+- add DVBSky Drivers for DVB-C
+- add official TBS OpenSource Drivers
+
+1.1
+- add Digital Devices support
+- fix downloads/dvb-driver.txt creation at fresh install
+
+1.0
+- initial LibreELEC version

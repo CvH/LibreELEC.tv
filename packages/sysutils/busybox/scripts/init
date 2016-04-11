@@ -807,7 +807,7 @@
     [ -f "/sysroot/usr/lib/systemd/systemd" ] || error "final_check" "Could not find systemd!"
     
     # mount correct kernel modules dir
-    MODULES_DIR="$(cat /sysroot/storage/.config/.kernel_modules_dir 2>/dev/null)"
+    MODULES_DIR="$(cat /sysroot/storage/downloads/dvb-drivers.txt 2>/dev/null)"
     if [ -n "$MODULES_DIR" ]; then
       MODULES_DIR="/sysroot/lib/modules/$MODULES_DIR"
       if [ -d "$MODULES_DIR" ]; then

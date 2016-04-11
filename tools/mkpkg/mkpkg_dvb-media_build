@@ -19,7 +19,7 @@
 
 echo "getting sources..."
   if [ ! -d media_build.git ]; then
-    git clone git://linuxtv.org/media_build.git media_build.git
+    git clone --depth=1 git://linuxtv.org/media_build.git media_build.git
   fi
 
   cd media_build.git
