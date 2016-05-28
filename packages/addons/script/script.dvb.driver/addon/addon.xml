@@ -9,7 +9,7 @@
   <extension point="xbmc.python.script" library="default.py"></extension>
     <extension point="xbmc.addon.metadata">
     <summary lang="en">DVB Driver Configuration</summary>
-    <description lang="en">DVB Driver Configuration to set witch DVB Driver should be used.</description>
+    <description lang="en">DVB Driver Configuration to set which DVB Driver should be used.</description>
     <platform>all</platform>
   </extension>
 </addon>

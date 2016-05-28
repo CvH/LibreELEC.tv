@@ -78,7 +78,7 @@ def mediabuild():
 
 def dddvbcc():
 	LF = open('/storage/downloads/dvb-drivers.txt', 'w')
-	LF.write('4.4.7-dddvb-cc')
+	LF.write('4.4.7-dddvb')
 	LF.close()
 	reboot()
 
