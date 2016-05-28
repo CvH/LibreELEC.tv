@@ -60,7 +60,8 @@
 # for a list of additinoal drivers see packages/linux-drivers
 # Space separated list is supported,
 # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
-  ADDITIONAL_DRIVERS="RTL8192CU RTL8192DU RTL8192EU RTL8188EU RTL8812AU dvbhdhomerun tbs tbs-dvbc tbs-oss crazycat media_build ljalves-cc dddvb dvbsky"
+  ADDITIONAL_DRIVERS="RTL8192CU RTL8192DU RTL8192EU RTL8188EU RTL8812AU dvbhdhomerun tbs tbs-dvbc tbs-oss crazycat media_build ljalves-cc dddvb digital_devices"
+# dvbsky temporarily disabled untill fixed
 
 # build and install bluetooth support (yes / no)
   BLUETOOTH_SUPPORT="yes"

@@ -7,6 +7,7 @@
         <setting label="Official TBS OSS Drivers (TBS6205,6904,6909)" type="action" action="RunScript(script.dvb.driver, tbs_oss)"/>
         <setting label="CrazyCat (Official TBS Driver + additions)" type="action" action="RunScript(script.dvb.driver, crazycat)"/>
         <setting label="Digital Devices" type="action" action="RunScript(script.dvb.driver, dddvbcc)"/>
+        <setting label="Digital Devices (manufacturer)" type="action" action="RunScript(script.dvb.driver, digital_devices)"/>
         <setting label="DVBSky DVB-C Drivers" type="action" action="RunScript(script.dvb.driver, dvbskyc)"/>
         <setting label="[Generic and Rpi1/2/3] TBS Cards - Open Source Drivers" type="lsep"/>
         <setting label="Ljalves-CC Drivers (Ljalves + additions from CrazyCat)" type="action" action="RunScript(script.dvb.driver, ljalvescc)"/>

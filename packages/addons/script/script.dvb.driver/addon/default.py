@@ -88,6 +88,12 @@ def dvbsky():
 	LF.close()
 	reboot()
 
+def digital_devices():
+  LF = open('/storage/downloads/dvb-drivers.txt', 'w')
+  LF.write('4.4.7-digital_devices')
+  LF.close()
+  reboot()
+
 try:
 	args = ' '.join(sys.argv[1:])
 except:
@@ -109,7 +115,9 @@ elif args == 'mediabuild':
 	mediabuild()
 elif args == 'dddvbcc':
 	dddvbcc()
-elif args == 'dvbsky':
-	dddvbcc()
+elif args == 'dvbskyc':
+	dvbsky()
+elif args == 'digital_devices':
+  digital_devices()
 else:
 	xbmc.executebuiltin('Addon.OpenSettings(script.dvb.driver)')
