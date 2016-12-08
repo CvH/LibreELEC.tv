@@ -37,6 +37,24 @@ pre_make_target() {
 }
 
 make_target() {
+
+  # Amlogic AMLVIDEO driver
+  if [ -e "$(kernel_path)/drivers/amlogic/video_dev" ]; then
+
+    # Copy, patch and enable amlvideodri module
+    cp -a "$(kernel_path)/drivers/amlogic/video_dev" "media/drivers/media/"
+    sed -i 's,common/,,g; s,"trace/,",g' $(find media/drivers/media/video_dev/ -type f)
+    sed -i 's,\$(CONFIG_V4L_AMLOGIC_VIDEO),m,g' "media/drivers/media/video_dev/Makefile"
+    echo "obj-y += video_dev/" >> "media/drivers/media/Makefile"
+    echo "source drivers/media/video_dev/Kconfig " >> "media/drivers/media/Kconfig"
+
+    # Copy and enable videobuf-res module
+    cp -a "$(kernel_path)/drivers/media/v4l2-core/videobuf-res.c" "media/drivers/media/v4l2-core/"
+    cp -a "$(kernel_path)/include/media/videobuf-res.h" "media/include/media/"
+    echo "obj-m += videobuf-res.o" >> "media/drivers/media/v4l2-core/Makefile"
+
+  fi
+
   cd media_build
   make dir DIR=../media
   make VER=$KERNEL_VER SRCDIR=$(kernel_path) allyesconfig
