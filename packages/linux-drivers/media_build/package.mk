@@ -31,6 +31,15 @@ PKG_LONGDESC="DVB drivers that replace the version shipped with the kernel"
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
+case "$LINUX" in
+  amlogic-3.10)
+    PKG_PATCH_DIRS="amlogic-3.10"
+    ;;
+  amlogic-3.14)
+    PKG_PATCH_DIRS="amlogic-3.14"
+    ;;
+esac
+
 pre_make_target() {
   export KERNEL_VER=$(get_module_dir)
   export LDFLAGS=""
