@@ -1,0 +1,483 @@
+From edd3d7f14c53b3ead318723f30557be94e65ea89 Mon Sep 17 00:00:00 2001
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Date: Wed, 8 Oct 2014 12:02:38 -0600
+Subject: [PATCH 1/6] of: back-porting v4l2 graph bindings
+
+This patch is back-porting the generic _portion_ of
+fd9fdb78a9bf85b94fb2190c82ff280c8f8375cc to 3.10
+
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+---
+ drivers/of/base.c        | 120 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/of_graph.h |  46 ++++++++++++++++++
+ 2 files changed, 166 insertions(+)
+ create mode 100644 include/linux/of_graph.h
+
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index b60f9a77..db1b132 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -1660,3 +1660,123 @@ const char *of_prop_next_string(struct property *prop, const char *cur)
+ 	return curv;
+ }
+ EXPORT_SYMBOL_GPL(of_prop_next_string);
++
++/**
++ * of_graph_get_next_endpoint() - get next endpoint node
++ * @parent: pointer to the parent device node
++ * @prev: previous endpoint node, or NULL to get first
++ *
++ * Return: An 'endpoint' node pointer with refcount incremented. Refcount
++ * of the passed @prev node is not decremented, the caller have to use
++ * of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
++					struct device_node *prev)
++{
++	struct device_node *endpoint;
++	struct device_node *port;
++
++	if (!parent)
++		return NULL;
++
++	/*
++	 * Start by locating the port node. If no previous endpoint is specified
++	 * search for the first port node, otherwise get the previous endpoint
++	 * parent port node.
++	 */
++	if (!prev) {
++		struct device_node *node;
++
++		node = of_get_child_by_name(parent, "ports");
++		if (node)
++			parent = node;
++
++		port = of_get_child_by_name(parent, "port");
++		of_node_put(node);
++
++		if (!port) {
++			pr_err("%s(): no port node found in %s\n",
++			       __func__, parent->full_name);
++			return NULL;
++		}
++	} else {
++		port = of_get_parent(prev);
++		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
++			      __func__, prev->full_name))
++			return NULL;
++
++		/*
++		 * Avoid dropping prev node refcount to 0 when getting the next
++		 * child below.
++		 */
++		of_node_get(prev);
++	}
++
++	while (1) {
++		/*
++		 * Now that we have a port node, get the next endpoint by
++		 * getting the next child. If the previous endpoint is NULL this
++		 * will return the first child.
++		 */
++		endpoint = of_get_next_child(port, prev);
++		if (endpoint) {
++			of_node_put(port);
++			return endpoint;
++		}
++
++		/* No more endpoints under this port, try the next one. */
++		prev = NULL;
++
++		do {
++			port = of_get_next_child(parent, port);
++			if (!port)
++				return NULL;
++		} while (of_node_cmp(port->name, "port"));
++	}
++}
++EXPORT_SYMBOL(of_graph_get_next_endpoint);
++
++/**
++ * of_graph_get_remote_port_parent() - get remote port's parent node
++ * @node: pointer to a local endpoint device_node
++ *
++ * Return: Remote device node associated with remote endpoint node linked
++ *	   to @node. Use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_remote_port_parent(
++			       const struct device_node *node)
++{
++	struct device_node *np;
++	unsigned int depth;
++
++	/* Get remote endpoint node. */
++	np = of_parse_phandle(node, "remote-endpoint", 0);
++
++	/* Walk 3 levels up only if there is 'ports' node. */
++	for (depth = 3; depth && np; depth--) {
++		np = of_get_next_parent(np);
++		if (depth == 2 && of_node_cmp(np->name, "ports"))
++			break;
++	}
++	return np;
++}
++EXPORT_SYMBOL(of_graph_get_remote_port_parent);
++
++/**
++ * of_graph_get_remote_port() - get remote port node
++ * @node: pointer to a local endpoint device_node
++ *
++ * Return: Remote port node associated with remote endpoint node linked
++ *	   to @node. Use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_remote_port(const struct device_node *node)
++{
++	struct device_node *np;
++
++	/* Get remote endpoint node. */
++	np = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!np)
++		return NULL;
++	return of_get_next_parent(np);
++}
++EXPORT_SYMBOL(of_graph_get_remote_port);
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+new file mode 100644
+index 0000000..3bbeb60
+--- /dev/null
++++ b/include/linux/of_graph.h
+@@ -0,0 +1,46 @@
++/*
++ * OF graph binding parsing helpers
++ *
++ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * Copyright (C) 2012 Renesas Electronics Corp.
++ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ */
++#ifndef __LINUX_OF_GRAPH_H
++#define __LINUX_OF_GRAPH_H
++
++#ifdef CONFIG_OF
++struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
++					struct device_node *previous);
++struct device_node *of_graph_get_remote_port_parent(
++					const struct device_node *node);
++struct device_node *of_graph_get_remote_port(const struct device_node *node);
++#else
++
++static inline struct device_node *of_graph_get_next_endpoint(
++					const struct device_node *parent,
++					struct device_node *previous)
++{
++	return NULL;
++}
++
++static inline struct device_node *of_graph_get_remote_port_parent(
++					const struct device_node *node)
++{
++	return NULL;
++}
++
++static inline struct device_node *of_graph_get_remote_port(
++					const struct device_node *node)
++{
++	return NULL;
++}
++
++#endif /* CONFIG_OF */
++
++#endif /* __LINUX_OF_GRAPH_H */
+-- 
+1.8.3.1
+
+
+From 6f090598d666963e92a5b7ab65e3055b01d24f08 Mon Sep 17 00:00:00 2001
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
+Date: Wed, 8 Oct 2014 13:09:30 -0600
+Subject: [PATCH 2/6] of: back-porting generic graph bindings
+
+This patch is back-porting the generic _portion_ of
+f2a575f67695dcba9062acd666ae5aab2380b95c to 3.10
+
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+---
+ drivers/of/base.c        | 32 ++++++++++++++++++++++++++++++++
+ include/linux/of_graph.h | 19 +++++++++++++++++++
+ 2 files changed, 51 insertions(+)
+
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index db1b132..79a7653 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -20,6 +20,7 @@
+ #include <linux/ctype.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_graph.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+ #include <linux/proc_fs.h>
+@@ -1662,6 +1663,37 @@ const char *of_prop_next_string(struct property *prop, const char *cur)
+ EXPORT_SYMBOL_GPL(of_prop_next_string);
+ 
+ /**
++ * of_graph_parse_endpoint() - parse common endpoint node properties
++ * @node: pointer to endpoint device_node
++ * @endpoint: pointer to the OF endpoint data structure
++ *
++ * The caller should hold a reference to @node.
++ */
++int of_graph_parse_endpoint(const struct device_node *node,
++			    struct of_endpoint *endpoint)
++{
++	struct device_node *port_node = of_get_parent(node);
++
++	WARN_ONCE(!port_node, "%s(): endpoint %s has no parent node\n",
++		  __func__, node->full_name);
++
++	memset(endpoint, 0, sizeof(*endpoint));
++
++	endpoint->local_node = node;
++	/*
++	 * It doesn't matter whether the two calls below succeed.
++	 * If they don't then the default value 0 is used.
++	 */
++	of_property_read_u32(port_node, "reg", &endpoint->port);
++	of_property_read_u32(node, "reg", &endpoint->id);
++
++	of_node_put(port_node);
++
++	return 0;
++}
++EXPORT_SYMBOL(of_graph_parse_endpoint);
++
++/**
+  * of_graph_get_next_endpoint() - get next endpoint node
+  * @parent: pointer to the parent device node
+  * @prev: previous endpoint node, or NULL to get first
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index 3bbeb60..56e0507 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -14,7 +14,21 @@
+ #ifndef __LINUX_OF_GRAPH_H
+ #define __LINUX_OF_GRAPH_H
+ 
++/**
++ * struct of_endpoint - the OF graph endpoint data structure
++ * @port: identifier (value of reg property) of a port this endpoint belongs to
++ * @id: identifier (value of reg property) of this endpoint
++ * @local_node: pointer to device_node of this endpoint
++ */
++struct of_endpoint {
++	unsigned int port;
++	unsigned int id;
++	const struct device_node *local_node;
++};
++
+ #ifdef CONFIG_OF
++int of_graph_parse_endpoint(const struct device_node *node,
++				struct of_endpoint *endpoint);
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_remote_port_parent(
+@@ -22,6 +36,11 @@ struct device_node *of_graph_get_remote_port_parent(
+ struct device_node *of_graph_get_remote_port(const struct device_node *node);
+ #else
+ 
++static inline int of_graph_parse_endpoint(const struct device_node *node,
++					struct of_endpoint *endpoint)
++{
++	return -ENOSYS;
++}
+ static inline struct device_node *of_graph_get_next_endpoint(
+ 					const struct device_node *parent,
+ 					struct device_node *previous)
+-- 
+1.8.3.1
+
+
+From 03b8b3215a2d15aed996281bef3a7c368d6dd686 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 16 Jul 2014 21:04:31 +0000
+Subject: [PATCH 3/6] time: Export nsecs_to_jiffies()
+
+Required for moving drivers to the nanosecond based interfaces.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+---
+ kernel/time.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernel/time.c b/kernel/time.c
+index 31ec845..b436b3c 100644
+--- a/kernel/time.c
++++ b/kernel/time.c
+@@ -704,6 +704,7 @@ unsigned long nsecs_to_jiffies(u64 n)
+ {
+ 	return (unsigned long)nsecs_to_jiffies64(n);
+ }
++EXPORT_SYMBOL_GPL(nsecs_to_jiffies);
+ 
+ /*
+  * Add two timespec values and do a safety check for overflow.
+-- 
+1.8.3.1
+
+
+From b67c293c4cb6655af415c325525c67dd4c6241aa Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Thu, 27 Oct 2016 23:07:58 +0200
+Subject: [PATCH 4/6] drivers/amlogic: exports symbols needed to build Amlogic
+ V4L2 as module
+
+---
+ drivers/amlogic/amports/video.c   | 1 +
+ drivers/amlogic/ppmgr/ppmgr_drv.c | 1 +
+ 2 files changed, 2 insertions(+)
+ mode change 100755 => 100644 drivers/amlogic/amports/video.c
+ mode change 100755 => 100644 drivers/amlogic/ppmgr/ppmgr_drv.c
+
+diff --git a/drivers/amlogic/amports/video.c b/drivers/amlogic/amports/video.c
+old mode 100755
+new mode 100644
+index db86c36..66e5c14
+--- a/drivers/amlogic/amports/video.c
++++ b/drivers/amlogic/amports/video.c
+@@ -93,6 +93,7 @@ static int debugflags=0;
+ static int output_fps = 0;
+ static u32 omx_pts = 0;
+ bool omx_secret_mode = false;
++EXPORT_SYMBOL(omx_secret_mode);
+ #define DEBUG_FLAG_FFPLAY	(1<<0)
+ #define DEBUG_FLAG_CALC_PTS_INC	(1<<1)
+ 
+diff --git a/drivers/amlogic/ppmgr/ppmgr_drv.c b/drivers/amlogic/ppmgr/ppmgr_drv.c
+old mode 100755
+new mode 100644
+index 57d77ac..47b0e55
+--- a/drivers/amlogic/ppmgr/ppmgr_drv.c
++++ b/drivers/amlogic/ppmgr/ppmgr_drv.c
+@@ -978,6 +978,7 @@ void get_ppmgr_buf_info(char** start,unsigned int* size) {
+     *start=ppmgr_device.buffer_start;
+     *size=ppmgr_device.buffer_size;
+ }
++EXPORT_SYMBOL(get_ppmgr_buf_info);
+ 
+ static int ppmgr_open(struct inode *inode, struct file *file)
+ {
+-- 
+1.8.3.1
+
+
+From 2dc6ae83581daa09369c816eba0cf08e42961a14 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Sun, 11 Dec 2016 14:01:48 +0100
+Subject: [PATCH 5/6] drivers/amlogic/video_dev: improve media_build
+ compatibility
+
+---
+ drivers/amlogic/video_dev/amlvideo.c  | 8 +++++---
+ drivers/amlogic/video_dev/amlvideo2.c | 6 +++---
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/amlogic/video_dev/amlvideo.c b/drivers/amlogic/video_dev/amlvideo.c
+index 94162a3..5d7d33b 100755
+--- a/drivers/amlogic/video_dev/amlvideo.c
++++ b/drivers/amlogic/video_dev/amlvideo.c
+@@ -921,7 +921,7 @@ static int amlvideo_mmap(struct file *file, struct vm_area_struct *vma) {
+     return ret;
+ }
+ 
+-static const struct v4l2_file_operations amlvideo_fops = { .owner = THIS_MODULE, .open = amlvideo_open, .release = amlvideo_close, .read = amlvideo_read, .poll = amlvideo_poll, .ioctl = video_ioctl2, /* V4L2 ioctl handler */
++static const struct v4l2_file_operations amlvideo_fops = { .owner = THIS_MODULE, .open = amlvideo_open, .release = amlvideo_close, .read = amlvideo_read, .poll = amlvideo_poll, .unlocked_ioctl = video_ioctl2, /* V4L2 ioctl handler */
+ .mmap = amlvideo_mmap, };
+ 
+ static const struct v4l2_ioctl_ops amlvideo_ioctl_ops = {
+@@ -947,7 +947,7 @@ static const struct v4l2_ioctl_ops amlvideo_ioctl_ops = {
+ 
+ static struct video_device amlvideo_template = { .name = "amlvideo", .fops = &amlvideo_fops, .ioctl_ops = &amlvideo_ioctl_ops, .release = video_device_release,
+ 
+-.tvnorms = V4L2_STD_525_60, .current_norm = V4L2_STD_NTSC_M , };
++.tvnorms = V4L2_STD_525_60, /* .current_norm = V4L2_STD_NTSC_M , */ };
+ 
+ /* -----------------------------------------------------------------
+  Initialization and module stuff
+@@ -998,7 +998,9 @@ static int __init amlvideo_create_instance(int inst) {
+         goto unreg_dev;
+ 
+     *vfd = amlvideo_template;
+-    vfd->debug = debug;
++    // vfd->debug = debug;
++    vfd->v4l2_dev = &dev->v4l2_dev;
++
+     ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+     if (ret < 0)
+         goto rel_vdev;
+diff --git a/drivers/amlogic/video_dev/amlvideo2.c b/drivers/amlogic/video_dev/amlvideo2.c
+index de1e4f1..3b8e24e 100755
+--- a/drivers/amlogic/video_dev/amlvideo2.c
++++ b/drivers/amlogic/video_dev/amlvideo2.c
+@@ -3470,7 +3470,7 @@ static const struct v4l2_file_operations amlvideo2_fops = {
+ 	.release        = amlvideo2_close,
+ 	.read           = amlvideo2_read,
+ 	.poll		= amlvideo2_poll,
+-	.ioctl          = video_ioctl2, /* V4L2 ioctl handler */
++	.unlocked_ioctl          = video_ioctl2, /* V4L2 ioctl handler */
+ 	.mmap           = amlvideo2_mmap,
+ };
+ 
+@@ -3509,7 +3509,7 @@ static struct video_device amlvideo2_template = {
+ 	.release	= video_device_release,
+ 
+ 	.tvnorms              = V4L2_STD_525_60,
+-	.current_norm         = V4L2_STD_NTSC_M,
++	// .current_norm         = V4L2_STD_NTSC_M,
+ };
+ 
+ static int amlvideo2_receiver_event_fun(int type, void* data, void* private_data)
+@@ -3678,7 +3678,7 @@ static int amlvideo2_create_node(struct platform_device *pdev)
+ 			break;
+ 		}
+ 		*vfd = amlvideo2_template;
+-		vfd->debug = debug;
++		// vfd->debug = debug;
+ 		ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+ 		if (ret < 0){
+ 			ret = -ENODEV;
+-- 
+1.8.3.1
+
+
+From c75820e73d394318f8affba3948657f45952a030 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Wed, 28 Dec 2016 21:46:07 +0100
+Subject: [PATCH 6/6] lib: select RATIONAL for media_build
+
+---
+ lib/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Kconfig b/lib/Kconfig
+index fe01d41..50ca92c 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -14,7 +14,7 @@ config BITREVERSE
+ 	tristate
+ 
+ config RATIONAL
+-	boolean
++	def_bool y
+ 
+ config GENERIC_STRNCPY_FROM_USER
+ 	bool
+-- 
+1.8.3.1
+

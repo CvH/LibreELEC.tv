@@ -1,0 +1,186 @@
+From ecdb9ef047d517dea132b20f3c17a6ebebb47b79 Mon Sep 17 00:00:00 2001
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 16 Jul 2014 21:04:31 +0000
+Subject: [PATCH 1/5] time: Export nsecs_to_jiffies()
+
+Required for moving drivers to the nanosecond based interfaces.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+---
+ kernel/time.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernel/time.c b/kernel/time.c
+index 3c49ab4..1f8eb6b 100644
+--- a/kernel/time.c
++++ b/kernel/time.c
+@@ -700,6 +700,7 @@ unsigned long nsecs_to_jiffies(u64 n)
+ {
+ 	return (unsigned long)nsecs_to_jiffies64(n);
+ }
++EXPORT_SYMBOL_GPL(nsecs_to_jiffies);
+ 
+ /*
+  * Add two timespec values and do a safety check for overflow.
+-- 
+1.8.3.1
+
+
+From 814bee6f4cac17581d05084b081afffe9d0b368f Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Wed, 26 Oct 2016 21:01:50 +0200
+Subject: [PATCH 2/5] drivers/amlogic/video_dev: VIDEOBUF_GEN is needed to
+ compile V4L_AMLOGIC_VIDEO and V4L_AMLOGIC_VIDEO2
+
+---
+ drivers/amlogic/video_dev/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/amlogic/video_dev/Kconfig b/drivers/amlogic/video_dev/Kconfig
+index bdae148..94a2a2f 100644
+--- a/drivers/amlogic/video_dev/Kconfig
++++ b/drivers/amlogic/video_dev/Kconfig
+@@ -4,6 +4,7 @@ config V4L_AMLOGIC_VIDEO
+ 	tristate "Amlogic v4l video device support"
+ 	select VIDEO_DEV
+ 	select VIDEO_V4L2
++	select VIDEOBUF_GEN
+ 	select VIDEOBUF_RESOURCE
+ 	default n
+ 	---help---
+@@ -14,6 +15,7 @@ config V4L_AMLOGIC_VIDEO2
+ 	select VIDEO_DEV
+ 	select VIDEOBUF_GEN
+ 	select VIDEO_V4L2_COMMON
++	select VIDEOBUF_GEN
+ 	select VIDEOBUF_RESOURCE
+ 	select AM_GE2D
+     	default n
+-- 
+1.8.3.1
+
+
+From be3c26fa15d3a081326dd297d0cf9f7a3a6c9494 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Thu, 27 Oct 2016 23:07:58 +0200
+Subject: [PATCH 3/5] drivers/amlogic: exports symbols needed to build Amlogic
+ V4L2 as module
+
+---
+ drivers/amlogic/amports/video.c   | 1 +
+ drivers/amlogic/ppmgr/ppmgr_drv.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/amlogic/amports/video.c b/drivers/amlogic/amports/video.c
+index 7481409..343a31e 100644
+--- a/drivers/amlogic/amports/video.c
++++ b/drivers/amlogic/amports/video.c
+@@ -131,6 +131,7 @@ bool platform_type = 1;
+ int bit_depth_flag = 8;
+ 
+ bool omx_secret_mode = false;
++EXPORT_SYMBOL(omx_secret_mode);
+ #define DEBUG_FLAG_FFPLAY	(1<<0)
+ #define DEBUG_FLAG_CALC_PTS_INC	(1<<1)
+ 
+diff --git a/drivers/amlogic/ppmgr/ppmgr_drv.c b/drivers/amlogic/ppmgr/ppmgr_drv.c
+index 252fc60..2cfb3c9 100644
+--- a/drivers/amlogic/ppmgr/ppmgr_drv.c
++++ b/drivers/amlogic/ppmgr/ppmgr_drv.c
+@@ -1226,6 +1226,7 @@ void get_ppmgr_buf_info(unsigned int *start, unsigned int *size)
+ 	*start = ppmgr_device.buffer_start;
+ 	*size = ppmgr_device.buffer_size;
+ }
++EXPORT_SYMBOL(get_ppmgr_buf_info);
+ 
+ static int ppmgr_open(struct inode *inode, struct file *file)
+ {
+-- 
+1.8.3.1
+
+
+From d13ca4439a59648491999dbc3f8cfb1de255715f Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Sun, 11 Dec 2016 14:01:48 +0100
+Subject: [PATCH 4/5] drivers/amlogic/video_dev: improve media_build
+ compatibility
+
+---
+ drivers/amlogic/video_dev/amlvideo.c  | 4 ++--
+ drivers/amlogic/video_dev/amlvideo2.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/amlogic/video_dev/amlvideo.c b/drivers/amlogic/video_dev/amlvideo.c
+index 20f3431..830bd87 100644
+--- a/drivers/amlogic/video_dev/amlvideo.c
++++ b/drivers/amlogic/video_dev/amlvideo.c
+@@ -1045,7 +1045,7 @@ static const struct v4l2_file_operations amlvideo_fops = {
+ 	.owner = THIS_MODULE, .open = amlvideo_open,
+ 	.release = amlvideo_close,
+ 	.read = amlvideo_read, .poll = amlvideo_poll,
+-	.ioctl = video_ioctl2, /* V4L2 ioctl handler */
++	.unlocked_ioctl = video_ioctl2, /* V4L2 ioctl handler */
+ 	.mmap = amlvideo_mmap, };
+ 
+ static const struct v4l2_ioctl_ops amlvideo_ioctl_ops = {
+@@ -1131,7 +1131,7 @@ static int __init amlvideo_create_instance(int inst)
+ 
+ 	*vfd = amlvideo_template;
+ 
+-	vfd->debug = debug;
++	// vfd->debug = debug;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 
+ 	/* //////////////////////////////////////// */
+diff --git a/drivers/amlogic/video_dev/amlvideo2.c b/drivers/amlogic/video_dev/amlvideo2.c
+index 169cfb0..1c05e55 100644
+--- a/drivers/amlogic/video_dev/amlvideo2.c
++++ b/drivers/amlogic/video_dev/amlvideo2.c
+@@ -4978,7 +4978,7 @@ static const struct v4l2_file_operations amlvideo2_fops = {
+ .release = amlvideo2_close,
+ .read = amlvideo2_read,
+ .poll = amlvideo2_poll,
+-.ioctl = video_ioctl2, /* V4L2 ioctl handler */
++.unlocked_ioctl = video_ioctl2, /* V4L2 ioctl handler */
+ .mmap = amlvideo2_mmap, };
+ 
+ static const struct v4l2_ioctl_ops amlvideo2_ioctl_ops = {
+@@ -5259,7 +5259,7 @@ static int amlvideo2_create_node(struct platform_device *pdev)
+ 			break;
+ 		}
+ 		*vfd = amlvideo2_template;
+-		vfd->debug = debug;
++		// vfd->debug = debug;
+ 		vfd->v4l2_dev = v4l2_dev;
+ 		ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+ 		if (ret < 0) {
+-- 
+1.8.3.1
+
+
+From 302ad901695d00cb1f94f17ae4d67221a4a8e44e Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Wed, 28 Dec 2016 21:46:07 +0100
+Subject: [PATCH 5/5] lib: select RATIONAL for media_build
+
+---
+ lib/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 991c98b..aded9dc 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -14,7 +14,7 @@ config BITREVERSE
+ 	tristate
+ 
+ config RATIONAL
+-	boolean
++	def_bool y
+ 
+ config GENERIC_STRNCPY_FROM_USER
+ 	bool
+-- 
+1.8.3.1
+
