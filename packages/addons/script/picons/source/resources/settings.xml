@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="1000">
+        <setting label="1001" type="lsep" />
+	    <setting type="sep" />
+        <setting label="1002" type="lsep" />
+		<setting label="1003" type="action" action="RunScript($CWD/default.py, srp)" default="" /> 
+        <setting label="1004" type="lsep" />		
+		<setting label="1005" type="action" action="RunScript($CWD/default.py, snp)" default="" /> 
+	</category>
+	<category label="1017">
+		<setting label="1006" type="bool" id="urldown"/>
+		<setting label="1007" type="enum" id="extfile" lvalues="1008|1009|1010|1011" subsetting="true" default="0" enable="eq(-1,true)" visible="eq(-1,true)"/>
+		<setting label="1012" type="text" id="exturl" defaut="" subsetting="true" enable="eq(-2,true)" visible="eq(-2,true)"/>
+		<setting label="1013" type="folder" id="pathpicons" defaut="" subsetting="true" source="auto" option="writeable" enable="eq(-3,true)" visible="eq(-3,true)" />
+	</category>
+</settings>
