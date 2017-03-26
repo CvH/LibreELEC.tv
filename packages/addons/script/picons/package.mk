@@ -17,7 +17,7 @@
 ################################################################################
 
 PKG_NAME="picons"
-PKG_VERSION=""
+PKG_VERSION="1.0"
 PKG_REV="100"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
@@ -25,13 +25,14 @@ PKG_SITE=""
 PKG_URL=""
 PKG_DEPENDS_TARGET="toolchain zstandard"
 PKG_SECTION="script"
-PKG_SHORTDESC="Download Picons"
-PKG_LONGDESC="Picons Downloader ($PKG_VERSION): "
+PKG_SHORTDESC="Picons Downloader: a program to download Picons for Tvh and VDR"
+PKG_LONGDESC="Picons Downloader provides Picons that can be used at the Tvh and VDR service"
 PKG_AUTORECONF="no"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="Picons Downloader"
-PKG_ADDON_TYPE="dummy"
+PKG_ADDON_TYPE="xbmc.python.script"
+PKG_ADDON_PROVIDES="executable"
 
 make_target() {
   : # nop
