@@ -1,5 +1,5 @@
 107
-- added dstat, htop and vim
+- added aria2, dstat, htop and vim
 - updated difftools to 3.6
 - updated dtach to 0.9
 - updated fdupes to 1.6.1

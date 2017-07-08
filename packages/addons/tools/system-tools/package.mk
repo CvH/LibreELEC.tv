@@ -26,7 +26,7 @@ PKG_URL=""
 PKG_DEPENDS_TARGET="toolchain"
 PKG_SECTION="virtual"
 PKG_SHORTDESC="A bundle of system tools and programs"
-PKG_LONGDESC="This bundle currently includes autossh, diffutils, dtach, efibootmgr, evtest, fdupes, file, getscancodes, hddtemp, hd-idle, hid_mapper, i2c-tools, inotify-tools, jq, lm_sensors, lshw, mc, mrxvt, mtpfs, nmon, p7zip, patch, pv, screen, strace, unrar and usb-modeswitch."
+PKG_LONGDESC="This bundle currently includes aria2, autossh, diffutils, dtach, efibootmgr, evtest, fdupes, file, getscancodes, hddtemp, hd-idle, hid_mapper, i2c-tools, inotify-tools, jq, lm_sensors, lshw, mc, mrxvt, mtpfs, nmon, p7zip, patch, pv, screen, strace, unrar and usb-modeswitch."
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="System Tools"
@@ -36,6 +36,7 @@ PKG_ADDON_PROVIDES=""
 PKG_AUTORECONF="no"
 
 PKG_DEPENDS_TARGET="toolchain \
+                    aria2 \
                     autossh \
                     diffutils \
                     dstat \
@@ -71,6 +72,9 @@ addon() {
   mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/lib/
   mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/data/
   mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/bin/
+    # aria2
+    cp -P $(get_build_dir aria2)/.install_pkg/usr/bin/aria2c $ADDON_BUILD/$PKG_ADDON_ID/bin
+
     # autossh
     cp -P $(get_build_dir autossh)/.$TARGET_NAME/autossh $ADDON_BUILD/$PKG_ADDON_ID/bin
 
