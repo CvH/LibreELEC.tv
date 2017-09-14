@@ -17,36 +17,63 @@
 ################################################################################
 
 PKG_NAME="tvheadend42"
-PKG_VERSION="407c8a3"
-PKG_VERSION_NUMBER="4.2.3-20"
+PKG_VERSION="219dc8e"
+PKG_VERSION_NUMBER="4.3.999"
 PKG_REV="112"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.tvheadend.org"
 PKG_URL="https://github.com/tvheadend/tvheadend/archive/$PKG_VERSION.tar.gz"
 PKG_SOURCE_DIR="tvheadend-${PKG_VERSION}*"
-PKG_DEPENDS_TARGET="toolchain curl dvb-tools libdvbcsa libiconv openssl pngquant:host Python:host yasm"
+PKG_DEPENDS_TARGET="toolchain curl dvb-tools libdvbcsa libiconv openssl pngquant:host Python:host bzip2 ffmpegx"
 PKG_SECTION="service"
 PKG_SHORTDESC="Tvheadend: a TV streaming server for Linux"
 PKG_LONGDESC="Tvheadend ($PKG_VERSION_NUMBER): is a TV streaming server for Linux supporting DVB-S/S2, DVB-C, DVB-T/T2, IPTV, SAT>IP, ATSC and ISDB-T"
 PKG_AUTORECONF="no"
 
 PKG_IS_ADDON="yes"
-PKG_ADDON_NAME="Tvheadend Server 4.2"
+PKG_ADDON_NAME="Tvheadend Server 4.3"
 PKG_ADDON_TYPE="xbmc.service"
 
-# transcoding only for generic
+# basic transcoding options
+TVH_TRANSCODING="\
+  --disable-ffmpeg_static \
+  --disable-libfdkaac_static \
+  --disable-libopus_static \
+  --disable-libtheora \
+  --disable-libtheora_static \
+  --disable-libvorbis_static \
+  --disable-libvpx_static \
+  --disable-libx264_static \
+  --disable-libx265_static \
+  --enable-libav \
+  --enable-libfdkaac \
+  --enable-libopus \
+  --enable-libvorbis \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-libx265"
+
+
+# hw specific transcoding options
 if [ "$TARGET_ARCH" = x86_64 ]; then
-  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET libva-intel-driver"
-  TVH_TRANSCODING="--enable-ffmpeg_static --enable-libav --enable-libfdkaac --disable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --disable-qsv"
-else
-  TVH_TRANSCODING="--disable-ffmpeg_static --disable-libav"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET libva-intel-driver yasm" # intel-vaapi-driver for master
+  TVH_TRANSCODING="$TVH_TRANSCODING \
+    --enable-vaapi"
+fi
+
+if [[ "$PROJECT" =~ "RPi" ]]; then
+  TVH_TRANSCODING="$TVH_TRANSCODING \
+    --disable-libx265 \
+    --enable-mmal \
+    --enable-omx"
 fi
 
 PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --arch=$TARGET_ARCH \
                            --cpu=$TARGET_CPU \
                            --cc=$CC \
+                           $TVH_TRANSCODING \
                            --disable-avahi \
                            --enable-bundle \
                            --disable-dbus_1 \
@@ -59,7 +86,7 @@ PKG_CONFIGURE_OPTS_TARGET="--prefix=/usr \
                            --enable-pngquant \
                            --disable-nvenc \
                            --disable-uriparser \
-                           $TVH_TRANSCODING \
+                           --disable-pcre2 \
                            --enable-tvhcsa \
                            --enable-trace \
                            --nowerror \
@@ -72,25 +99,30 @@ post_unpack() {
 }
 
 pre_configure_target() {
+# pass ffmpegx to build
+  PKG_CONFIG_PATH="$(get_build_dir ffmpegx)/.INSTALL_PKG/usr/local/lib/pkgconfig"
+  CFLAGS="$CFLAGS -I$(get_build_dir ffmpegx)/.INSTALL_PKG/usr/local/include/"
+  LDFLAGS="$LDFLAGS -L$(get_build_dir ffmpegx)/.INSTALL_PKG/usr/local/lib"
+
 # fails to build in subdirs
   cd $PKG_BUILD
   rm -rf .$TARGET_NAME
 
 # transcoding
   if [ "$TARGET_ARCH" = x86_64 ]; then
-    export AS=$TOOLCHAIN/bin/yasm
-    export LDFLAGS="$LDFLAGS -lX11 -lm -lvdpau -lva -lva-drm -lva-x11"
-    export ARCH=$TARGET_ARCH
+    export AS="$TOOLCHAIN/bin/yasm"
+    export LDFLAGS="$LDFLAGS -lX11 -lm -lvdpau -lva -lva-drm -lva-x11 -lbz2"
+    export ARCH="$TARGET_ARCH"
   fi
 
-  export CROSS_COMPILE=$TARGET_PREFIX
+  export CROSS_COMPILE="$TARGET_PREFIX"
   export CFLAGS="$CFLAGS -I$SYSROOT_PREFIX/usr/include/iconv -L$SYSROOT_PREFIX/usr/lib/iconv"
 }
 
 # transcoding link tvheadend with g++
 if [ "$TARGET_ARCH" = x86_64 ]; then
   pre_make_target() {
-    export CXX=$CXX
+    export CXX="$CXX"
   }
 fi
 
@@ -99,7 +131,7 @@ post_make_target() {
 }
 
 makeinstall_target() {
-  : # nothing to do here
+  :
 }
 
 addon() {
