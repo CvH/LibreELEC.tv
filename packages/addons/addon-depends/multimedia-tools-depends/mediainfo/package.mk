@@ -30,14 +30,12 @@ PKG_SHORTDESC="MediaInfo is a convenient unified display of the most relevant te
 PKG_LONGDESC="MediaInfo is a convenient unified display of the most relevant technical and tag data for video and audio files"
 PKG_TOOLCHAIN="manual"
 
-pre_configure_target() {
-  export LDFLAGS="$LDFLAGS -lmediainfo -lzen"
-}
-
 make_target() {
   cd Project/GNU/CLI
   do_autoreconf
   echo $PATH
+  export LDFLAGS="$LDFLAGS -L$(get_build_dir libmediainfo)/Project/GNU/Library/.libs -L$(get_build_dir libzen)/Project/GNU/Library/.libs"
+  export LIBS="-lmediainfo -lzen"
   ./configure \
         --host=$TARGET_NAME \
         --build=$HOST_NAME \
