@@ -10,7 +10,7 @@ msgid "DVB"
 msgstr ""
 
 msgctxt "#30001"
-msgid "Plugins"
+msgid "PLUGINS"
 msgstr ""
 
 msgctxt "#30002"
@@ -135,4 +135,16 @@ msgstr ""
 
 msgctxt "#30032"
 msgid "Enable plugin: DDCI2"
+msgstr ""
+
+msgctxt "#30033"
+msgid "DEBUG"
+msgstr ""
+
+msgctxt "#30034"
+msgid "VDR Debugging"
+msgstr ""
+
+msgctxt "#30035"
+msgid "Enable Debug Log"
 msgstr ""

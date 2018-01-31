@@ -184,4 +184,9 @@ if [ "$WAIT_FOR_FEINIT" == "true" ] ; then
 fi
 
 fix_config
-eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG &>$ADDON_HOME/service.log
+
+if [ "$ENABLE_VDR_DEBUG" == "true" ] ; then
+  eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG & /usr/bin/journalctl -b -0 -f -u service.multimedia.vdr-addon > $ADDON_LOG_FILE
+else
+  eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG
+fi
