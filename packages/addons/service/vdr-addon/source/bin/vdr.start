@@ -48,7 +48,7 @@ ADDON_CACHE_DIR="$ADDON_HOME/cache"
 mkdir -p $ADDON_CACHE_DIR
 
 VDR_ARG="-g /tmp --no-kbd"
-if [ "$DEBUG" = "yes" ]; then
+if [ "$DEBUG" = "yes" -o "$ENABLE_VDR_DEBUG" == "true" ]; then
   VDR_ARG="$VDR_ARG --log=3"
 else
   VDR_ARG="$VDR_ARG --log=1"
@@ -108,8 +108,13 @@ fi
 if [ "$ENABLE_EPGSEARCH" == "true" ] ; then
   VDR_ARG="$VDR_ARG -P epgsearch"
 fi
-if [ "$ENABLE_DUMMYDEVICE" == "true" ] ; then
+if [ "$ENABLE_DUMMYDEVICE" == "true" \
+     -o ! \( -d /dev/dvb/adapter0 -o "$WAIT_FOR_FEINIT" == "true" \
+             -o "$ENABLE_SATIP" == "true" \
+             -o "$ENABLE_STREAMDEV_CLIENT" == "true" \) ] ; then
   VDR_ARG="$VDR_ARG -P dummydevice"
+else
+  VNSI_ARG=" -d"
 fi
 if [ "$ENABLE_SATIP" == "true" ] ; then
   VDR_ARG="$VDR_ARG -P 'satip -d $SATIP_NUM_DEVICES'"
@@ -150,7 +155,7 @@ RESTFULAPI_ARGS="$RESTFULAPI_ARGS --channellogos=\"$ADDON_HOME/channellogos\""
 VDR_ARG="$VDR_ARG -P 'restfulapi $RESTFULAPI_ARGS'"
 
 # vnsi last
-VDR_ARG="$VDR_ARG -P vnsiserver"
+VDR_ARG="$VDR_ARG -P 'vnsiserver$VNSI_ARG'"
 
 cd $ADDON_DIR/config
 mkdir -p $ADDON_CONFIG_DIR
@@ -186,7 +191,8 @@ fi
 fix_config
 
 if [ "$ENABLE_VDR_DEBUG" == "true" ] ; then
-  eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG & /usr/bin/journalctl -b -0 -f -u service.multimedia.vdr-addon > $ADDON_LOG_FILE
-else
-  eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG
+  /usr/bin/journalctl -b -0 -f -u service.multimedia.vdr-addon > $ADDON_LOG_FILE &
+  sleep 1
 fi
+
+eval LANG=en_US.UTF-8 VDR_CHARSET_OVERRIDE="$VDR_CHARSET_OVERRIDE" exec vdr.bin $VDR_ARG
