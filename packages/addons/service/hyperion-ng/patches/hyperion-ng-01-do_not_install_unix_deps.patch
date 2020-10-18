@@ -1,0 +1,24 @@
+From a5b54e7db52098a93fe7c53665b584d96a8bf041 Mon Sep 17 00:00:00 2001
+From: CvH <1355173+CvH@users.noreply.github.com>
+Date: Wed, 18 Nov 2020 18:04:04 +0100
+Subject: [PATCH] do not install Unix deps
+
+---
+
+diff --git a/src/hyperiond/CMakeLists.txt b/src/hyperiond/CMakeLists.txt
+index 2ec4cf758..3e8efe136 100644
+--- a/src/hyperiond/CMakeLists.txt
++++ b/src/hyperiond/CMakeLists.txt
+@@ -135,12 +135,3 @@ if(CMAKE_HOST_UNIX)
+ 	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "Hyperion" )
+ 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "Hyperion" )
+ endif()
+-
+-# Copy dependencies (not for OSX)
+-include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+-
+-if (NOT ENABLE_OSX AND NOT WIN32) # Unix
+-	DeployUnix("hyperiond")
+-elseif(WIN32) # Windows
+-	DeployWindows("hyperiond")
+-endif ()

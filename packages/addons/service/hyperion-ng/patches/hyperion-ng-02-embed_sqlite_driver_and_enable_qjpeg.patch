@@ -1,0 +1,91 @@
+From dad6fb3d45c29f964f41d3a98e5741866d72a570 Mon Sep 17 00:00:00 2001
+From: CvH <namerp@googlemail.com>
+Date: Wed, 18 Nov 2020 19:46:45 +0100
+Subject: [PATCH] embed sqlite driver and enable qjpeg
+
+---
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 62200bb2f..37e43fc66 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -388,6 +388,15 @@ IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+ 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+ ENDIF()
+ 
++foreach(plugin ${Qt5Sql_PLUGINS} Qt5::Sql)
++        get_target_property(_loc ${plugin} LOCATION)
++        set(plugin_libs ${plugin_libs} ${_loc})
++endforeach()
++foreach(plugin ${Qt5Gui_PLUGINS} Qt5::Gui)
++        get_target_property(_loc ${plugin} LOCATION)
++        set(plugin_libs ${plugin_libs} ${_loc})
++endforeach()
++
+ # Add libusb and pthreads
+ find_package(libusb-1.0 REQUIRED)
+ find_package(Threads REQUIRED)
+diff --git a/libsrc/db/CMakeLists.txt b/libsrc/db/CMakeLists.txt
+index e420fd00c..47d963d6f 100644
+--- a/libsrc/db/CMakeLists.txt
++++ b/libsrc/db/CMakeLists.txt
+@@ -16,3 +16,7 @@ target_link_libraries(database
+ 	Qt5::Core
+ 	Qt5::Sql
+ )
++
++target_link_libraries(database
++	${plugin_libs}
++	)
+diff --git a/libsrc/db/DBManager.cpp b/libsrc/db/DBManager.cpp
+index 6336ef0ea..8232f919f 100644
+--- a/libsrc/db/DBManager.cpp
++++ b/libsrc/db/DBManager.cpp
+@@ -1,3 +1,4 @@
++#include <HyperionConfig.h>
+ #include <db/DBManager.h>
+ 
+ #include <QSqlDatabase>
+@@ -12,6 +13,9 @@
+ 	#include <stdexcept>
+ #endif
+ 
++#include <QtPlugin>
++Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
++
+ // not in header because of linking
+ static QString _rootPath;
+ static QThreadStorage<QSqlDatabase> _databasePool;
+diff --git a/src/hyperiond/CMakeLists.txt b/src/hyperiond/CMakeLists.txt
+index 3e8efe136..713a7b94f 100644
+--- a/src/hyperiond/CMakeLists.txt
++++ b/src/hyperiond/CMakeLists.txt
+@@ -54,6 +54,11 @@ if (ENABLE_AVAHI)
+ 	target_link_libraries(hyperiond bonjour)
+ endif ()
+ 
++target_link_libraries(hyperiond
++	Qt5::Core
++	pcre16 dl z ${plugin_libs}
++)
++
+ if (ENABLE_AMLOGIC)
+ 	target_link_libraries(hyperiond
+ 		Qt5::Core
+diff --git a/src/hyperiond/hyperiond.cpp b/src/hyperiond/hyperiond.cpp
+index 1c12289dc..3f017cfc6 100644
+--- a/src/hyperiond/hyperiond.cpp
++++ b/src/hyperiond/hyperiond.cpp
+@@ -28,6 +28,12 @@
+ #include <webserver/WebServer.h>
+ #include "hyperiond.h"
+ 
++#ifdef ENABLE_LE
++#include <QtPlugin>
++Q_IMPORT_PLUGIN(QJpegPlugin)
++Q_IMPORT_PLUGIN(QGifPlugin)
++#endif
++
+ // Flatbuffer Server
+ #include <flatbufserver/FlatBufferServer.h>
+ 
