@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case "$1" in
+  pre)
+    pid="$(pgrep hyperiond)"
+    if [ -n "$pid" ]; then
+      kill -SIGUSR1 "$pid"
+    fi
+    ;;
+  post)
+    pid="$(pgrep hyperiond)"
+    if [ -n "$pid" ]; then
+      kill -SIGUSR2 "$pid"
+    fi
+    ;;
+esac
