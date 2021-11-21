@@ -1,0 +1,57 @@
+From 1a41bfc36d05394b35d5b9813f78677678573dd5 Mon Sep 17 00:00:00 2001
+From: CvH <1355173+CvH@users.noreply.github.com>
+Date: Sun, 14 Nov 2021 22:07:20 +0100
+Subject: [PATCH] Update configure
+
+---
+ configure | 16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
+
+diff --git a/configure b/configure
+index 5a8ebff..2ce4ed9 100755
+--- a/configure
++++ b/configure
+@@ -2280,12 +2280,7 @@ else
+   ac_ext=py
+ ac_compile='chmod +x conftest.$ac_ext >&5'
+ ac_link='chmod +x conftest.$ac_ext && cp conftest.$ac_ext conftest >&5'
+-     if test "$cross_compiling" = yes; then :
+-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
+-See \`config.log' for more details" "$LINENO" 5; }
+-else
++
+   cat > conftest.$ac_ext <<_ACEOF
+ #!$PYTHON
+ import sys
+@@ -2316,7 +2311,6 @@ else
+ fi
+ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+   conftest.$ac_objext conftest.beam conftest.$ac_ext
+-fi
+ 
+      ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+@@ -2343,12 +2337,6 @@ else
+   ac_ext=py
+ ac_compile='chmod +x conftest.$ac_ext >&5'
+ ac_link='chmod +x conftest.$ac_ext && cp conftest.$ac_ext conftest >&5'
+-     if test "$cross_compiling" = yes; then :
+-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
+-See \`config.log' for more details" "$LINENO" 5; }
+-else
+   cat > conftest.$ac_ext <<_ACEOF
+ #!$PYTHON
+ import sys
+@@ -2378,8 +2366,6 @@ else
+   pc_cv_python_req_version_4_0=no
+ fi
+ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+-  conftest.$ac_objext conftest.beam conftest.$ac_ext
+-fi
+ 
+      ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
