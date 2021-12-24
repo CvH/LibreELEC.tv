@@ -2,15 +2,15 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="hyperion-ng"
-PKG_VERSION="a0311bd8b58dd12aec0bdd62e1ec47adcaa340f4"
-PKG_SHA256="108c21e235243329e725a5dbf2a3ed79f026f1b3731f2c6c9e2685a8bb289550"
-PKG_VERSION_DATE="2020-11-17"
+PKG_VERSION="c38ec60208d015755f1e0ce5a09caef670bde059"
+PKG_SHA256="0e73c42f99c4412112d6cca75a95b8564dfb000c512c915ef8987071d73e84da"
+PKG_VERSION_DATE="2021-12-14"
 PKG_REV="100"
 PKG_ARCH="x86_64"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/hyperion-project/hyperion.ng"
 PKG_URL="https://github.com/hyperion-project/hyperion.ng/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain Python3 libusb qtbase protobuf avahi flatbuffers flatbuffers:host libcec qtserialport"
+PKG_DEPENDS_TARGET="toolchain Python3 libusb qt-everywhere protobuf avahi flatbuffers flatbuffers:host libcec"
 PKG_SECTION="service"
 PKG_SHORTDESC="Hyperion.NG: an AmbiLight controller"
 PKG_LONGDESC="Hyperion.NG (${PKG_VERSION_DATE}) is a modern opensource AmbiLight implementation."
@@ -29,6 +29,7 @@ pre_configure_target() {
   # workaround to define variable for patch
   # src/hyperiond/hyperiond.cpp
   export ENABLE_LE=1
+  export PLATFORM="rpi"
 }
 
 PKG_CMAKE_OPTS_TARGET="-DPython3_EXECUTABLE=${TOOLCHAIN}/bin/${PKG_PYTHON_VERSION} \
@@ -39,6 +40,7 @@ PKG_CMAKE_OPTS_TARGET="-DPython3_EXECUTABLE=${TOOLCHAIN}/bin/${PKG_PYTHON_VERSIO
                        -DUSE_SYSTEM_PROTO_LIBS=ON \
                        -DUSE_SYSTEM_FLATBUFFERS_LIBS=ON \
                        -DENABLE_SPIDEV=OFF \
+                       -DPLATFORM=rpi \
                        -DENABLE_TINKERFORGE=OFF \
                        -DENABLE_V4L2=ON \
                        -DENABLE_WS281XPWM=OFF \
