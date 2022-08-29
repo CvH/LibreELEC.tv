@@ -12,7 +12,7 @@ if [ ! -f "${ADDON_DIR}/extract.ok" ]; then
 fi
 
 export NEXTPVR_DATADIR_USERDATA=${ADDON_HOME}/config/
-export NEXTPVR_DVBDIR=${ADDON_HOME}/dtv-scan-tables/
+export NEXTPVR_DVBDIR=${ADDON_DIR}/dtv-scan-tables/
 
-cd ${ADDON_DIR}
+cd ${ADDON_DIR}/nextpvr-bin
 exec dotnet ${ADDON_DIR}/nextpvr-bin/NextPVRServer.dll > /dev/null

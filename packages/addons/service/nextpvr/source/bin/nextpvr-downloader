@@ -9,7 +9,7 @@ oe_setup_addon service.nextpvr
 ICON="${ADDON_DIR}/resources/icon.png"
 CONTROL_FILE="/tmp/curl.nextpvr.done"
 DATA_FILE="/tmp/curl.nextpvr.data"
-NEXTPVR_FILE="NPVR.zip"
+NEXTPVR_FILE="NPVR-6.0.0.zip"
 
 # check for enough free disk space
 if [ $(df . | awk 'END {print $4}') -lt 400000 ]; then
@@ -51,14 +51,26 @@ rm -f ${CONTROL_FILE} ${DATA_FILE}
 
 rm -f ${CONTROL_FILE} ${DATA_FILE}
 
+# check for failed download
+if [ ! -f ${NEXTPVR_FILE} ]; then
+  kodi-send --action="Notification(Download NextPVR failed,${ICON})"
+  exit 1
+fi
+
 ## extract NextPVR
 kodi-send --action="Notification(Extracting NextPVR,starting,1000,${ICON})" >/dev/null
 mkdir -p ${ADDON_DIR}/nextpvr-bin
-unzip ${NEXTPVR_FILE} -d ${ADDON_DIR}/nextpvr-bin
+unzip ${NEXTPVR_FILE} -d ${ADDON_DIR}/nextpvr-bin > /dev/null
+
+if [ "$(uname -m)" != "x86_64" ]; then
+  sed -i 's/<TranscodeHLS>default<\/TranscodeHLS>/<TranscodeHLS>-y [ANALYZE_DURATION] [SEEK] -i [SOURCE] -map_metadata -1 -threads [THREADS] -ignore_unknown -map 0:v:0? [PREFERRED_LANGUAGE] -map 0:a:[AUDIO_STREAM] -map -0:s -vcodec copy -acodec aac -ac 2 -c:s copy -hls_time [SEGMENT_DURATION] -start_number 0 -hls_list_size [SEGMENT_COUNT] -y [TARGET]<\/TranscodeHLS>/' ${ADDON_DIR}/nextpvr-bin/data/Config-master-dont-edit.xml
+fi
+sed -i 's/<RecordingDirectory>C:\\Users\\Public\\Videos\\<\/RecordingDirectory>/<RecordingDirectory>\/storage\/tvshows\/<\/RecordingDirectory>/' ${ADDON_DIR}/nextpvr-bin/data/Config-master-dont-edit.xml
+sed -i 's/<LiveTVBufferDirectory>C:\\Users\\Public\\Videos\\<\/LiveTVBufferDirectory>/<LiveTVBufferDirectory>\/tmp\/<\/LiveTVBufferDirectory>/' ${ADDON_DIR}/nextpvr-bin/data/Config-master-dont-edit.xml
+find ${ADDON_DIR}/nextpvr-bin/DeviceHost -name DeviceHostLinux -exec chmod 755 {} \;
 
 # cleanup
 cd ${ADDON_DIR}
 rm -rf ${ADDON_DIR}/tmp_download
 touch ${ADDON_DIR}/extract.ok
 kodi-send --action="Notification(Extracting NextPVR,finished,1000,${ICON})" >/dev/null
-

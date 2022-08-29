@@ -1,2 +1,5 @@
+101
+- Initial repository release
+
 100
 - Initial release
