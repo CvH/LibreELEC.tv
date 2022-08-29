@@ -1,0 +1,18 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2021-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+oe_setup_addon service.nextpvr
+
+# check if nextpvr-server is already successful installed
+if [ ! -f "${ADDON_DIR}/extract.ok" ]; then
+  cd ${ADDON_DIR}
+  nextpvr-downloader
+fi
+
+export NEXTPVR_DATADIR_USERDATA=${ADDON_HOME}/config/
+export NEXTPVR_DVBDIR=${ADDON_HOME}/dtv-scan-tables/
+
+cd ${ADDON_DIR}
+exec dotnet ${ADDON_DIR}/nextpvr-bin/NextPVRServer.dll > /dev/null
