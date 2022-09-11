@@ -1,10 +1,9 @@
-# SPDX-License-Identifier: GPL-2.0
+# SPDX-License-Identifier: GPL-2.0-only
 # Copyright (C) 2021-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="nextpvr"
-PKG_VERSION="bootstrap"
-PKG_ADDON_VERSION="6.0.0"
-PKG_REV="101"
+PKG_VERSION="6.0.0"
+PKG_REV="100"
 PKG_ARCH="any"
 PKG_LICENSE="prop."
 PKG_SITE="https://nextpvr.com"
@@ -17,9 +16,12 @@ PKG_TOOLCHAIN="manual"
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="NextPVR Server"
 PKG_ADDON_TYPE="xbmc.service.library"
-PKG_ADDON_PROJECTS="any"
 PKG_ADDON_REQUIRES="tools.ffmpeg-tools:0.0.0 tools.dotnet-runtime:0.0.0 script.module.requests:0.0.0"
 
 addon() {
   :
+}
+
+post_install_addon() {
+  sed -e "s/@NEXTPVR_VERSION@/${PKG_VERSION}/g" -i "${INSTALL}/bin/nextpvr-downloader"
 }
