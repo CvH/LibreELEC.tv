@@ -7,9 +7,9 @@ import xbmc, xbmcvfs, xbmcgui, xbmcaddon
 import shutil
 import sys
 
-url = 'https://github.com/tvheadend/dtv-scan-tables/archive/tvheadend.zip'
+url = 'https://repo.or.cz/dtv-scan-tables.git/snapshot/master.zip'
 temp = xbmcvfs.translatePath('special://temp')
-temp_folder = os.path.join(temp, 'dtv-scan-tables-tvheadend')
+temp_folder = os.path.join(temp, "dtv-scan-tables")
 dest_folder = os.path.join(xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo('path')), 'dvb-scan')
 archive = os.path.join(temp, 'dtv_scantables.zip')
 
@@ -37,7 +37,7 @@ class DownLoader():
             for idx, folder in enumerate(SCANTABLES):
                 self._pbhook(idx, 1, len(SCANTABLES) - 1)
                 for z in zip.filelist:
-                    if folder in z.filename: zip.extract(z.filename, temp)
+                    if folder in z.filename: zip.extract(z.filename, temp_folder)
 
             self.dp.close()
             for folder in SCANTABLES:
@@ -64,4 +64,3 @@ if __name__ == '__main__':
             dl.download(url, archive)
     except IndexError:
         pass
-
