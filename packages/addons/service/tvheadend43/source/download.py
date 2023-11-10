@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2018-present Team LibreELEC (https://libreelec.tv)
+
 import os
 import shutil
 import urllib.request
@@ -18,7 +21,7 @@ def latest_version(url):
 
         if match:
             latest_version_date = match.group(1)
-            xbmcgui.Dialog().notification(ADDON_NAME, latest_version_date, xbmcgui.NOTIFICATION_INFO)
+            xbmcgui.Dialog().notification(ADDON_NAME, [LS(30042), latest_version_date], xbmcgui.NOTIFICATION_INFO)
     except Exception as e:
         pass
 
@@ -55,9 +58,10 @@ if __name__ == "__main__":
     downloaded_file_path = "/tmp/dtv-scan-tables-LATEST.tar.bz2"
     weburl = "https://linuxtv.org/downloads/dtv-scan-tables/"
 
+    # Get latest version date
     latest_version(weburl)
 
-    # Clear the contents of the directory
+    # Clear the contents of the dvb_scan directory
     clear_directory(scan_tables_path)
 
     # Download and extract the file using subprocess
@@ -66,4 +70,5 @@ if __name__ == "__main__":
     # Clean up the downloaded file
     os.remove(downloaded_file_path)
 
+    # Notify download complete
     xbmcgui.Dialog().notification(ADDON_NAME, LS(30039), xbmcgui.NOTIFICATION_INFO)
