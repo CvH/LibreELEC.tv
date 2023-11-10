@@ -2,6 +2,20 @@ import os
 import shutil
 import urllib.request
 import subprocess
+import re
+
+
+def latest_version(url):
+    # Download the content of the webpage
+    response = urllib.request.urlopen(url)
+    html_content = response.read().decode("utf-8")
+
+    # Find the line containing "dtv-scan-tables-LATEST.tar.bz2" and extract the date
+    match = re.search(r"dtv-scan-tables-LATEST\.tar\.bz2.*?([0-9-]{10})", html_content)
+
+    if match:
+        latest_version_date = match.group(1)
+        print("Latest version date:", latest_version_date)
 
 
 def clear_directory(directory):
@@ -15,6 +29,7 @@ def clear_directory(directory):
         print(f"Successfully cleared contents of '{directory}'.")
     except Exception as e:
         print(f"Error clearing contents of '{directory}': {e}")
+        exit(1)
 
 
 def download_and_extract(url, destination, extract_path):
@@ -30,14 +45,18 @@ def download_and_extract(url, destination, extract_path):
         print(f"Successfully downloaded and extracted to '{extract_path}'.")
     except Exception as e:
         print(f"Error downloading or extracting: {e}")
+        exit(1)
 
 
 if __name__ == "__main__":
-    scan_tables_path = "/storage/pp/99"
+    scan_tables_path = "/storage/.kodi/addons/service.tvheadend43/dvb-scan"
     download_url = (
         "https://linuxtv.org/downloads/dtv-scan-tables/dtv-scan-tables-LATEST.tar.bz2"
     )
     downloaded_file_path = "/tmp/dtv-scan-tables-LATEST.tar.bz2"
+    weburl = "https://linuxtv.org/downloads/dtv-scan-tables/"
+
+    latest_version(weburl)
 
     # Clear the contents of the directory
     clear_directory(scan_tables_path)
