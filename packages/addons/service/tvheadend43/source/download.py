@@ -12,20 +12,6 @@ ADDON_NAME = xbmcaddon.Addon().getAddonInfo("name")
 LS = xbmcaddon.Addon().getLocalizedString
 
 
-def latest_version(url):
-    try:
-        response = urllib.request.urlopen(url)
-        html_content = response.read().decode("utf-8")
-
-        match = re.search(r"dtv-scan-tables-LATEST\.tar\.bz2.*?([0-9-]{10})", html_content)
-
-        if match:
-            latest_version_date = match.group(1)
-            xbmcgui.Dialog().notification(ADDON_NAME, [LS(30042), latest_version_date], xbmcgui.NOTIFICATION_INFO)
-    except Exception as e:
-        pass
-
-
 def clear_directory(directory):
     try:
         for file_name in os.listdir(directory):
@@ -56,10 +42,6 @@ if __name__ == "__main__":
     scan_tables_path = os.path.join(xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("path")), "dvb-scan")
     download_url = "https://linuxtv.org/downloads/dtv-scan-tables/dtv-scan-tables-LATEST.tar.bz2"
     downloaded_file_path = "/tmp/dtv-scan-tables-LATEST.tar.bz2"
-    weburl = "https://linuxtv.org/downloads/dtv-scan-tables/"
-
-    # Get latest version date
-    latest_version(weburl)
 
     # Clear the contents of the dvb_scan directory
     clear_directory(scan_tables_path)
