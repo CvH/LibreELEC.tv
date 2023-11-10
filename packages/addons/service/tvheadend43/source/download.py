@@ -3,19 +3,24 @@ import shutil
 import urllib.request
 import subprocess
 import re
+import xbmc, xbmcvfs, xbmcgui, xbmcaddon
+
+ADDON_NAME = xbmcaddon.Addon().getAddonInfo("name")
+LS = xbmcaddon.Addon().getLocalizedString
 
 
 def latest_version(url):
-    # Download the content of the webpage
-    response = urllib.request.urlopen(url)
-    html_content = response.read().decode("utf-8")
+    try:
+        response = urllib.request.urlopen(url)
+        html_content = response.read().decode("utf-8")
 
-    # Find the line containing "dtv-scan-tables-LATEST.tar.bz2" and extract the date
-    match = re.search(r"dtv-scan-tables-LATEST\.tar\.bz2.*?([0-9-]{10})", html_content)
+        match = re.search(r"dtv-scan-tables-LATEST\.tar\.bz2.*?([0-9-]{10})", html_content)
 
-    if match:
-        latest_version_date = match.group(1)
-        print("Latest version date:", latest_version_date)
+        if match:
+            latest_version_date = match.group(1)
+            xbmcgui.Dialog().notification(ADDON_NAME, latest_version_date, xbmcgui.NOTIFICATION_INFO)
+    except Exception as e:
+        pass
 
 
 def clear_directory(directory):
@@ -26,9 +31,8 @@ def clear_directory(directory):
                 os.unlink(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
-        print(f"Successfully cleared contents of '{directory}'.")
     except Exception as e:
-        print(f"Error clearing contents of '{directory}': {e}")
+        xbmcgui.Dialog().notification(ADDON_NAME, LS(30041), xbmcgui.NOTIFICATION_INFO)
         exit(1)
 
 
@@ -38,21 +42,16 @@ def download_and_extract(url, destination, extract_path):
         urllib.request.urlretrieve(url, destination)
 
         # Extract the file to the specified directory, ignoring the root path
-        subprocess.run(
-            ["tar", "xf", destination, "--strip-components=3", "-C", extract_path]
-        )
+        subprocess.run(["tar", "xf", destination, "--strip-components=3", "-C", extract_path])
 
-        print(f"Successfully downloaded and extracted to '{extract_path}'.")
     except Exception as e:
-        print(f"Error downloading or extracting: {e}")
+        xbmcgui.Dialog().notification(ADDON_NAME, LS(30040), xbmcgui.NOTIFICATION_INFO)
         exit(1)
 
 
 if __name__ == "__main__":
-    scan_tables_path = "/storage/.kodi/addons/service.tvheadend43/dvb-scan"
-    download_url = (
-        "https://linuxtv.org/downloads/dtv-scan-tables/dtv-scan-tables-LATEST.tar.bz2"
-    )
+    scan_tables_path = os.path.join(xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("path")), "dvb-scan")
+    download_url = "https://linuxtv.org/downloads/dtv-scan-tables/dtv-scan-tables-LATEST.tar.bz2"
     downloaded_file_path = "/tmp/dtv-scan-tables-LATEST.tar.bz2"
     weburl = "https://linuxtv.org/downloads/dtv-scan-tables/"
 
@@ -66,3 +65,5 @@ if __name__ == "__main__":
 
     # Clean up the downloaded file
     os.remove(downloaded_file_path)
+
+    xbmcgui.Dialog().notification(ADDON_NAME, LS(30039), xbmcgui.NOTIFICATION_INFO)
