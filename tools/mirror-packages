@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2024-present Team LibreELEC (https://libreelec.tv)
+
+mirror_path="/d/GIT/"
+temp_path="/tmp"
+repo_path="/d/GIT/LE-CvH"
+
+# check if depends are available
+command -v curl >/dev/null 2>&1 || die "please install curl"
+
+# global vars
+packages_missing_vars=""
+packages_download_failed=""
+DISTRO_SRC=$(grep -oP -m 1 '(?<=DISTRO_SRC=\").*(?=\")' ${repo_path}/distributions/LibreELEC/options || true)
+
+source_package() {
+  # unset all variables to avoid leaking
+  unset PKG_NAME PKG_VERSION PKG_SHA256 PKG_SITE PKG_URL PKG_DIR PKG_IS_ADDON
+
+  # get all infos from a package
+  source <(${repo_path}/tools/pkginfo ${1})
+
+  # check if version, url are empty or self hosted by us and ignore those packages
+  if [ -z "${PKG_VERSION}" ] || [ -z "${PKG_URL}" ] || [[ "${PKG_URL}" == "$DISTRO_SRC"* ]]; then
+    missing_vars="yes"
+  fi
+
+  # check for packages that can't get downloaded and create the name of the download file PKG_NAME-PKG_VERSION.abc
+  if [[ ${PKG_VERSION} =~ ^\$ || ${PKG_URL} =~ ^git:// || ${PKG_URL} =~ ^file:// ]]; then
+    missing_vars="yes"
+  else
+    PKG_SOURCE_NAME="${PKG_URL##*/}"
+    case $PKG_SOURCE_NAME in
+    ${PKG_NAME}-${PKG_VERSION}.*)
+      PKG_SOURCE_NAME=$PKG_SOURCE_NAME
+      ;;
+    *\;sf=tbz2) # VDR workaround
+      PKG_SOURCE_NAME=${PKG_NAME}-${PKG_VERSION}.tar.bz
+      ;;
+    *.tar | *.tbz | *.tgz | *.txz | *.tzst | *.7z | *.zip)
+      PKG_SOURCE_NAME=${PKG_NAME}-${PKG_VERSION}.${PKG_SOURCE_NAME##*\.}
+      ;;
+    *.tar.bz2 | *.tar.gz | *.tar.xz | *.tar.zst)
+      PKG_SOURCE_NAME=${PKG_NAME}-${PKG_VERSION}.tar.${PKG_SOURCE_NAME##*\.}
+      ;;
+    *.diff | *.patch | *.diff.bz2 | *.patch.bz2 | patch-*.bz2 | *.diff.gz | *.patch.gz | patch-*.gz)
+      PKG_SOURCE_NAME=$PKG_SOURCE_NAME
+      ;;
+    *)
+      PKG_SOURCE_NAME=${PKG_NAME}-${PKG_VERSION}.${PKG_SOURCE_NAME##*\.}
+      ;;
+    esac
+  fi
+  current_package="${mirror_path}/mirror/master/${PKG_NAME}/${PKG_SOURCE_NAME}"
+  current_package_path="${mirror_path}/mirror/master/${PKG_NAME}"
+  current_package_file="${PKG_SOURCE_NAME}"
+}
+
+download_file() {
+  # download file
+  curl_download=$(curl -L -k -s -w "%{http_code}" -o "${temp_path}/${PKG_SOURCE_NAME}" "${PKG_URL}")
+
+  # check if download succeed
+  if [ "$curl_download" -eq 200 ]; then
+    # check if download hash is ok
+    if [ ! "${PKG_SHA256}" = $(sha256sum ${temp_path}/${current_package_file} | cut -d' ' -f1) ]; then
+      rm -f "${temp_path}/${current_package_file}"
+      echo "Hash of the downloaded file does not match"
+    fi
+    # move files to mirror folder
+    mv ${temp_path}/${current_package_file} ${current_package}
+  else
+    # print error if file can't get downloaded
+    echo "ERROR: ${current_package_file} could not be downloaded - server error [${curl_download}]: $PKG_URL"
+    packages_download_failed+="${PKG_NAME} "
+  fi
+}
+
+download_package() {
+  # check if folder exist otherwise create
+  if [ ! -d "$current_package_path" ]; then
+    mkdir -p ${current_package_path}
+  fi
+
+  # check if package exist
+  if [ -f ${current_package} ]; then
+    # check if hash is the same from the package.mk (to detect ninja updates of files)
+    if [ ! "${PKG_SHA256}" = $(sha256sum ${current_package} | cut -d' ' -f1) ]; then
+      # if a file was ninja updated rename old file to include a sha256 hash
+      mv ${current_package} ${current_package}-$(sha256sum ${current_package} | cut -d' ' -f1)
+      download_file
+    fi
+  else
+    download_file
+  fi
+}
+
+# create list of packages
+if [ -n "${1}" ]; then
+  package_list="$(find packages/ -type d -name ${1})/package.mk"
+  if [ ! -f "${package_list}" ]; then
+    die "Package not found: ${1}"
+  fi
+else
+  package_list=$(
+    find packages/ -type f -name package.mk \
+      ! -path "packages/emulation/*" \
+      ! -path "packages/linux/*" \
+      ! -path "packages/mediacenter/*" \
+      ! -path "packages/virtual/*" |
+      awk '{FS="/" ; $0=$0 ; print $(NF-1)"|"$0}' | sort | cut -d"|" -f2
+  )
+fi
+
+# call the check and download functions for all packages in list
+for check_package in ${package_list}; do
+  missing_vars=""
+  [ "$DEBUG" = "yes" ] && echo -e "\n----- start $check_package -----"
+  source_package $(basename $(dirname ${check_package}))
+  # if DEBUG=yes is enabled print all variables
+  if [ "$DEBUG" = "yes" ]; then
+    echo "check: $check_package"
+    echo "current_package: $current_package"
+    echo "current_package_path: $current_package_path"
+    echo "current_package_file: $current_package_file"
+    echo "PKG_NAME: $PKG_NAME"
+    echo "PKG_VERSION: $PKG_VERSION"
+    echo "PKG_SHA256: $PKG_SHA256"
+    echo "PKG_URL: $PKG_URL"
+    echo "missing_vars: $missing_vars"
+    echo "DISTRO_SRC: $DISTRO_SRC"
+  fi
+  if [[ $missing_vars == "yes" ]]; then
+    packages_missing_vars+="${PKG_NAME} "
+  else
+    echo "Download ${current_package_file}"
+    download_package
+  fi
+  [ "$DEBUG" = "yes" ] && echo "----- end $check_package -------"
+done
+
+if [ -n "${packages_missing_vars}" ]; then
+  echo -e "\nPackages are missing informations to downlod the files $(echo ${packages_missing_vars} | wc -w):\n${packages_missing_vars}\n"
+fi
+
+if [ -n "${packages_download_failed}" ]; then
+  echo -e "\nPackages could not get downloaded $(echo ${packages_download_failed} | wc -w):\n${packages_download_failed}\n"
+fi
+
+echo -e "\nCurrently $(du -sh ${mirror_path}/mirror | cut -f1) storage is used for the mirror"
