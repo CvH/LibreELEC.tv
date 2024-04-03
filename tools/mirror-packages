@@ -7,6 +7,23 @@ mirror_path="/d/GIT/"
 temp_path="/tmp"
 repo_path="/d/GIT/LE-CvH"
 
+# search paths
+if [ ! "addons" = "yes" ]; then
+  search_path_addon=(-not -path 'packages/addons/*')
+fi
+
+if [ ! "emulator" = "yes" ]; then
+  search_path_emulator=(-not -path 'packages/emulation/*' -not -path 'packages/mediacenter/kodi-binary-addons/*')
+fi
+
+if [ ! "kernel" = "yes" ]; then
+  search_path_linux=(-not -path 'packages/linux/*')
+fi
+
+if [ ! "kodi" = "yes" ]; then
+  search_path_kodi=(-not -path 'packages/kodi/*')
+fi
+
 # check if depends are available
 command -v curl >/dev/null 2>&1 || die "please install curl"
 
@@ -106,10 +123,11 @@ if [ -n "${1}" ]; then
 else
   package_list=$(
     find packages/ -type f -name package.mk \
-      ! -path "packages/emulation/*" \
-      ! -path "packages/linux/*" \
-      ! -path "packages/mediacenter/*" \
-      ! -path "packages/virtual/*" |
+      "${search_path_addon[@]}" \
+      "${search_path_emulator[@]}" \
+      "${search_path_linux[@]}" \
+      "${search_path_kodi[@]}" \
+      -not -path 'packages/virtual/*' |
       awk '{FS="/" ; $0=$0 ; print $(NF-1)"|"$0}' | sort | cut -d"|" -f2
   )
 fi
