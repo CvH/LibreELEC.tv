@@ -7,7 +7,7 @@
 
 oe_setup_addon service.minisatip
 
-chmod a+x $ADDON_DIR/bin/*
+chmod a+x "$ADDON_DIR"/bin/*
 
 # wait for dvb card
 if [ "$WAIT_FOR_FEINIT" = "true" ]; then
@@ -21,7 +21,7 @@ fi
 
 # sleep for x seconds
 if [ "$WORKAROUND_SLEEP" = "true" ]; then
-  sleep $WORKAROUND_SLEEP_TIME
+  sleep "$WORKAROUND_SLEEP_TIME"
 fi
 
 ## options
@@ -56,9 +56,9 @@ if [ "$MINISATIP_CLEANPSI" = "true" ]; then
 fi
 
 if [ "$MINISATIP_STARTUP" = "true" ]; then
-  echo "Minisatip was started with this settings: ${MINISATIP_STARTUP_ARGS}" > $ADDON_LOG_FILE
-  exec $ADDON_DIR/bin/minisatip -f ${MINISATIP_ARG_TEST} -x ${MINISATIP_WEBPORT} -R /storage/.kodi/addons/service.minisatip/webif ${MINISATIP_STARTUP_ARGS} >> $ADDON_LOG_FILE
+  echo "Minisatip was started with this settings: ${MINISATIP_STARTUP_ARGS}" > "$ADDON_LOG_FILE"
+  exec "$ADDON_DIR"/bin/minisatip -f "$MINISATIP_ARG_TEST" -x "$MINISATIP_WEBPORT" -R /storage/.kodi/addons/service.minisatip/webif "$MINISATIP_STARTUP_ARGS" >> "$ADDON_LOG_FILE"
 else
-  echo "Minisatip was started with this settings: ${MINISATIP_ARG}" > $ADDON_LOG_FILE
-  $ADDON_DIR/bin/minisatip -f ${MINISATIP_ARG_TEST} -x ${MINISATIP_WEBPORT} -R /storage/.kodi/addons/service.minisatip/webif ${MINISATIP_ARG} >> $ADDON_LOG_FILE
+  echo "Minisatip was started with this settings: ${MINISATIP_ARG}" > "$ADDON_LOG_FILE"
+  "$ADDON_DIR"/bin/minisatip -f "$MINISATIP_ARG_TEST" -x "$MINISATIP_WEBPORT" -R /storage/.kodi/addons/service.minisatip/webif "$MINISATIP_ARG" >> "$ADDON_LOG_FILE"
 fi

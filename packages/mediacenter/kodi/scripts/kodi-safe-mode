@@ -10,21 +10,21 @@ BOOT_STATUS=$HOME/.config/boot.status
 
 process_boot_status()
 {
-  BOOT_STATE="$(cat $BOOT_STATUS 2>/dev/null)"
+  BOOT_STATE="$(cat "$BOOT_STATUS" 2>/dev/null)"
 
-  if [ "${BOOT_STATE}" = "SAFE" ]; then
-    if [ ! -d $KODI_ROOT_FAILED ]; then
+  if [ "$BOOT_STATE" = "SAFE" ]; then
+    if [ ! -d "$KODI_ROOT_FAILED" ]; then
       # entering safe mode - rename failed .kodi, and restart with clean .kodi
-      mv $KODI_ROOT $KODI_ROOT_FAILED
+      mv "$KODI_ROOT" "$KODI_ROOT_FAILED"
       reboot
     else
       # exiting safe mode - restore failed .kodi
-      rm -fr $KODI_ROOT
-      mv $KODI_ROOT_FAILED $KODI_ROOT
-      echo "OK" > $BOOT_STATUS
+      rm -fr "$KODI_ROOT"
+      mv "$KODI_ROOT_FAILED" "$KODI_ROOT"
+      echo "OK" > "$BOOT_STATUS"
     fi
   else
-    echo "OK" > $BOOT_STATUS
+    echo "OK" > "$BOOT_STATUS"
   fi
 
   return 0

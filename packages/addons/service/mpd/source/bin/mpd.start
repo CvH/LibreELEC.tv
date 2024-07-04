@@ -8,18 +8,18 @@
 
 oe_setup_addon service.multimedia.mpd
 
-mkdir -p $ADDON_HOME/config
-mkdir -p $ADDON_HOME/log
-mkdir -p $ADDON_HOME/playlists
-mkdir -p $ADDON_HOME/music
-touch $ADDON_HOME/log/mpd.log
-touch $ADDON_HOME/mpd.db
-touch $ADDON_HOME/state
+mkdir -p "$ADDON_HOME"/config
+mkdir -p "$ADDON_HOME"/log
+mkdir -p "$ADDON_HOME"/playlists
+mkdir -p "$ADDON_HOME"/music
+touch "$ADDON_HOME"/log/mpd.log
+touch "$ADDON_HOME"/mpd.db
+touch "$ADDON_HOME"/state
 
-chmod a+x $ADDON_DIR/bin/*
+chmod a+x "$ADDON_DIR"/bin/*
 
 if [ ! -f "$ADDON_HOME/config/mpd.conf" ]; then
-  cp $ADDON_DIR/config/mpd.conf $ADDON_HOME/config/mpd.conf
+  cp "$ADDON_DIR"/config/mpd.conf "$ADDON_HOME"/config/mpd.conf
 fi
 
-exec mpd --no-daemon $ADDON_HOME/config/mpd.conf > /dev/null 2>&1
+exec mpd --no-daemon "$ADDON_HOME"/config/mpd.conf > /dev/null 2>&1

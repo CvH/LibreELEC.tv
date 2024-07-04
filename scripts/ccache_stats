@@ -6,4 +6,4 @@
 
 . config/options ""
 
-${TOOLCHAIN}/bin/ccache -s
+"$TOOLCHAIN"/bin/ccache -s

@@ -16,4 +16,4 @@ elif [ "$TTYD_NOLOGIN" = "false" ]; then
 fi
 
 [ -f "$ADDON_HOME/service.log" ] && mv -f "$ADDON_HOME/service.log" "$ADDON_HOME/service.old.log"
-exec $ADDON_DIR/bin/ttyd -W -O -T xterm -p ${TTYD_WEBPORT} ${TTYD_NOLOGIN} &>$ADDON_HOME/service.log
+exec "$ADDON_DIR"/bin/ttyd -W -O -T xterm -p "$TTYD_WEBPORT" "$TTYD_NOLOGIN" &>"$ADDON_HOME"/service.log

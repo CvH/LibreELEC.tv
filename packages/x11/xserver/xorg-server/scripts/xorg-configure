@@ -18,7 +18,7 @@ if [ -e /var/run/xorg-configure.done ] ; then
 fi
 
 touch /var/run/xorg-configure.done
-logger -t Xorg "creating needed directories and symlinks for driver: "${1}""
+logger -t Xorg "creating needed directories and symlinks for driver: ""${1}"
 
 ##############################################################################
 # setup xorg.conf paths
@@ -40,11 +40,11 @@ logger -t Xorg "### creating start options ###"
   XORG_ARGS="-s 0 -noreset -allowMouseOpenFail"
 
   # load user defined xorg.conf, if exist
-  if [ -f "${XORG_CONF_USER}" ]; then
+  if [ -f "$XORG_CONF_USER" ]; then
     XORG_ARGS="${XORG_ARGS} -config ${XORG_CONF_USER}"
-  elif [ -f "${XORG_CONF_USER_DRV}" ]; then
+  elif [ -f "$XORG_CONF_USER_DRV" ]; then
     XORG_ARGS="${XORG_ARGS} -config ${XORG_CONF_USER_DRV}"
-  elif [ -f "${XORG_CONF_DEFAULT}" ]; then
+  elif [ -f "$XORG_CONF_DEFAULT" ]; then
     XORG_ARGS="${XORG_ARGS} -config ${XORG_CONF_DEFAULT}"
   elif [ -f "$XORG_CONF_DEFAULT_DRV" ]; then
     XORG_ARGS="${XORG_ARGS} -config ${XORG_CONF_DEFAULT_DRV}"

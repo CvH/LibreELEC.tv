@@ -7,7 +7,7 @@ oe_setup_addon service.jellyfin
 
 # check if jellyfin is already successful installed
 if [ ! -f "$ADDON_DIR/extract.ok" ]; then
-  cd $ADDON_DIR
+  cd "$ADDON_DIR"
   jellyfin-downloader
 fi
 
@@ -17,5 +17,5 @@ ff="/storage/.kodi/addons/tools.ffmpeg-tools/bin"
 exec \
 nice -n "$jellyfin_nice" \
 dotnet "${libs}/jellyfin.dll" \
-  --datadir "${ADDON_HOME}" \
+  --datadir "$ADDON_HOME" \
   --ffmpeg "${ff}/ffmpeg"

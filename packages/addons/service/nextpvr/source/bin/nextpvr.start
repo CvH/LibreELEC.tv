@@ -7,7 +7,7 @@ oe_setup_addon service.nextpvr
 
 # check if nextpvr-server is already successful installed
 if [ ! -f "${ADDON_DIR}/extract.ok" ]; then
-  cd ${ADDON_DIR}
+  cd "$ADDON_DIR"
   nextpvr-downloader
 fi
 
@@ -18,9 +18,9 @@ export SATIP_RTSP_PORT=$satiprtsp
 
 read -d. uptime < /proc/uptime
 startdelay=$((waitfor-uptime))
-if  [ $startdelay -gt 0 ]; then
-  sleep $startdelay
+if  [ "$startdelay" -gt 0 ]; then
+  sleep "$startdelay"
 fi
 
-cd ${ADDON_DIR}/nextpvr-bin
-exec dotnet ${ADDON_DIR}/nextpvr-bin/NextPVRServer.dll >/dev/null
+cd "$ADDON_DIR"/nextpvr-bin
+exec dotnet "$ADDON_DIR"/nextpvr-bin/NextPVRServer.dll >/dev/null

@@ -13,18 +13,18 @@ target=""
 uuid=""
 
 get_target() {
-  for arg in $(cat /proc/cmdline); do
+  for arg in "$(cat /proc/cmdline)"; do
     case $arg in
       disk=*)
         disk="${arg#*=}"
         case $disk in
           LABEL=*)
             label="${disk#*=}"
-            target="$(blkid -L ${label})"
+            target="$(blkid -L "$label")"
             ;;
           UUID=*)
             uuid="${disk#*=}"
-            target="$(blkid -U ${uuid})"
+            target="$(blkid -U "$uuid")"
             ;;
           /*)
             target="$disk"
@@ -44,18 +44,18 @@ if [ -f /storage/.cache/reset_hard ]; then
   # hard reset
   rm -f /storage/.cache/reset_hard
   get_target
-  if [ -n "${target}" ]; then
+  if [ "$target" != "" ]; then
     show_reset_msg
 
     StartProgress spinner "Performing hard reset... "
-    if [ -b "${target}" -a $(blkid -o value -s TYPE "${target}") = "ext4" ]; then
+    if [ -b "$target" -a "$(blkid -o value -s TYPE "$target")" = "ext4" ]; then
       umount /storage/
-      mke2fs -t ext4 -m 0 "${target}" &>/dev/null
-      if [ -n "${label}" ]; then
-        tune2fs -U random -L "${label}" "${target}" &>/dev/null
+      mke2fs -t ext4 -m 0 "$target" &>/dev/null
+      if [ "$label" != "" ]; then
+        tune2fs -U random -L "$label" "$target" &>/dev/null
       fi
-      if [ -n "${uuid}" ]; then
-        tune2fs -U "${uuid}" "${target}" &>/dev/null
+      if [ "$uuid" != "" ]; then
+        tune2fs -U "$uuid" "$target" &>/dev/null
       fi
     else
       find /storage/ -mindepth 1 -delete
@@ -69,7 +69,7 @@ elif [ -f /storage/.cache/reset_soft ]; then
   # soft reset
   rm -f /storage/.cache/reset_soft
   get_target
-  if [ -n "${target}" ]; then
+  if [ "$target" != "" ]; then
     show_reset_msg
 
     StartProgress spinner "Performing soft reset... "

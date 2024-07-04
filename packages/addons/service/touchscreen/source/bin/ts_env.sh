@@ -12,20 +12,20 @@ if [ -d /usr/share/kodi/addons/service.touchscreen ]; then
   ADDON_DIR=/usr/share/kodi/addons/service.touchscreen
 fi
 
-if [ ! -f $ADDON_HOME/ts.conf-generic ]; then
-  cp $ADDON_DIR/config/* $ADDON_HOME
+if [ ! -f "$ADDON_HOME"/ts.conf-generic ]; then
+  cp "$ADDON_DIR"/config/* "$ADDON_HOME"
 fi
 
-if [ -f $ADDON_HOME/ts_env.sh ]; then
+if [ -f "$ADDON_HOME"/ts_env.sh ]; then
   # use user supplied script
-  if [ ! -x $ADDON_HOME/ts_env.sh ]; then
-    chmod +x $ADDON_HOME/ts_env.sh
+  if [ ! -x "$ADDON_HOME"/ts_env.sh ]; then
+    chmod +x "$ADDON_HOME"/ts_env.sh
   fi
   
-  dos2unix $ADDON_HOME/ts_env.sh
-  dos2unix $ADDON_HOME/ts.conf
+  dos2unix "$ADDON_HOME"/ts_env.sh
+  dos2unix "$ADDON_HOME"/ts.conf
 
-  . $ADDON_HOME/ts_env.sh
+  . "$ADDON_HOME"/ts_env.sh
 else
   # automatic start only on Udoo dual/quad for ldb screen
   LDB=""
@@ -35,7 +35,7 @@ else
     modprobe st1232 >/dev/null 2>&1
   fi
 
-  if [ -n "$LDB" ]; then
+  if [ "$LDB" != "" ]; then
     # find event# with command
     #  ls -l /dev/input/by-id
     # or using evtest program
@@ -52,24 +52,24 @@ else
     #echo "device: $TS_DEVICE"
 
     TS_DEVICE_CONF=""
-    if [ -n "$TS_DEVICE" ]; then
+    if [ "$TS_DEVICE" != "" ]; then
       TSLIB_TSDEVICE=$(echo 999 | evtest 2>&1 >/dev/null | awk -F':' -v TS_DEVICE="$TS_DEVICE" '$0 ~ TS_DEVICE {print $1}')
       TS_DEVICE_CONF="$TS_DEVICE_CONF_GENERIC"
     else
       TSLIB_TSDEVICE=$(echo 999 | evtest 2>&1 >/dev/null | awk -F':' -v TS_DEVICE="$TS_DEVICE_1" '$0 ~ TS_DEVICE {print $1}')
-      if [ -n "$TSLIB_TSDEVICE" ]; then
+      if [ "$TSLIB_TSDEVICE" != "" ]; then
         TS_DEVICE_CONF="$TS_DEVICE_CONF_1"
         rmmod st1232 >/dev/null 2>&1    # it's not
       else
         TSLIB_TSDEVICE=$(echo 999 | evtest 2>&1 >/dev/null | awk -F':' -v TS_DEVICE="$TS_DEVICE_2" '$0 ~ TS_DEVICE {print $1}')
-        if [ -n "$TSLIB_TSDEVICE" ]; then
+        if [ "$TSLIB_TSDEVICE" != "" ]; then
           TS_DEVICE_CONF="$TS_DEVICE_CONF_2"
         fi
       fi
     fi
 
-    if [ ! -f $ADDON_HOME/ts.conf -a -n "$TS_DEVICE_CONF" ]; then
-      cp "$ADDON_HOME/$TS_DEVICE_CONF" $ADDON_HOME/ts.conf
+    if [ ! -f "$ADDON_HOME"/ts.conf -a -n "$TS_DEVICE_CONF" ]; then
+      cp "$ADDON_HOME/$TS_DEVICE_CONF" "$ADDON_HOME"/ts.conf
     fi
 
     export TSLIB_TSDEVICE="$TSLIB_TSDEVICE"

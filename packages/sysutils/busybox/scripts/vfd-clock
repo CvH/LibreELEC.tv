@@ -32,7 +32,7 @@ case $(dtname) in
     ;;
 esac
 
-if [ -n "$LED_PATH_COLON" ] && [ -n "$LED_PATH_TEXT" ]; then
+if [ "$LED_PATH_COLON" != "" ] && [ "$LED_PATH_TEXT" != "" ]; then
   case $1 in
     start)
       do_start

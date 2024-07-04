@@ -14,7 +14,7 @@ COMPATIBLE=$(/usr/bin/dtsoc)
 MAC_STEP=""
 
 validate_mac() {
-  [ ${#MAC} -eq 12 -a "${MAC}" != "000000000000" ]
+  [ ${#MAC} -eq 12 -a "$MAC" != "000000000000" ]
 }
 
 fixup_self_mac() {
@@ -23,7 +23,7 @@ fixup_self_mac() {
 }
 
 from_cmdline() {
-  for arg in $(cat /proc/cmdline | tr -d ':'); do
+  for arg in "$(cat /proc/cmdline | tr -d ':')"; do
     case ${arg} in
       mac=*)
         MAC=${arg#*=}
@@ -69,15 +69,15 @@ case $COMPATIBLE in
     ;;
 esac
 
-for MAC_STEP in $MAC_STEPS ; do
-  $MAC_STEP
+for MAC_STEP in "${MAC_STEPS[@]}" ; do
+  "$MAC_STEP"
   validate_mac && break
 done
 
 if validate_mac ; then
   MAC=$(echo "$MAC" | sed 's/\(..\)/\1:/g' | cut -b-17)
-  echo "MAC=${MAC}" > /run/libreelec/ethmactool-$1
-  /usr/sbin/ip link set dev $1 down
-  /usr/sbin/ip link set dev $1 address $MAC
-  /usr/sbin/ip link set dev $1 up
+  echo "MAC=${MAC}" > /run/libreelec/ethmactool-"$1"
+  /usr/sbin/ip link set dev "$1" down
+  /usr/sbin/ip link set dev "$1" address "$MAC"
+  /usr/sbin/ip link set dev "$1" up
 fi

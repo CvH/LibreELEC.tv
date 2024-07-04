@@ -31,9 +31,9 @@ if [ "$TSLIB_TSDEVICE" = "" ]; then
     echo
     echo "device: $dev"
 
-    HID_ID=$(cat $dev | grep HID_ID | grep "$PRODUCT_VID_PID")
-    if [ -n "$HID_ID" ]; then
-      hidrawN=$(echo $dev | awk -F "/" '{print $5}')
+    HID_ID=$(cat "$dev" | grep HID_ID | grep "$PRODUCT_VID_PID")
+    if [ "$HID_ID" != "" ]; then
+      hidrawN=$(echo "$dev" | awk -F "/" '{print $5}')
       hidrawN="/dev/$hidrawN"
       echo "OK HID_ID: $HID_ID"
       echo "OK hidrawN: $hidrawN"
@@ -41,7 +41,7 @@ if [ "$TSLIB_TSDEVICE" = "" ]; then
     fi
   done
 
-  if [ -n "$hidrawN" ]; then
+  if [ "$hidrawN" != "" ]; then
     echo "found hidrawN: $hidrawN"
     export TSLIB_TSDEVICE=$hidrawN
   fi

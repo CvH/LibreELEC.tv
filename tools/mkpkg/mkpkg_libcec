@@ -15,14 +15,14 @@ echo "getting sources..."
   cd ..
 
 echo "copying sources..."
-  rm -rf libcec-$GIT_REV
-  cp -R libcec.git libcec-$GIT_REV
+  rm -rf libcec-"$GIT_REV"
+  cp -R libcec.git libcec-"$GIT_REV"
 
 echo "cleaning sources..."
-  rm -rf libcec-$GIT_REV/.git
+  rm -rf libcec-"$GIT_REV"/.git
 
 echo "packing sources..."
-  tar cvJf libcec-$GIT_REV.tar.xz libcec-$GIT_REV
+  tar cvJf libcec-"$GIT_REV".tar.xz libcec-"$GIT_REV"
 
 echo "remove temporary sourcedir..."
-  rm -rf libcec-$GIT_REV
+  rm -rf libcec-"$GIT_REV"

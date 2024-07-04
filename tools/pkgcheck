@@ -16,25 +16,25 @@ log() {
   local filename="$1" lc=$2 level="$3" msg="$4" data="$5"
   local txcolour flc colw
 
-  [ "${level}" = "FAIL" ] && txcolour="${TXRED}" || txcolour="${TXYELLOW}"
+  [ "$level" = "FAIL" ] && txcolour="$TXRED" || txcolour="$TXYELLOW"
   [[ ${filename} =~ ^\./ ]] && filename="${filename:2}"
-  [ ${lc} -eq 0 ] && flc="---" || flc="$(printf "%03d" ${lc})"
+  [ "$lc" -eq 0 ] && flc="---" || flc="$(printf "%03d" "$lc")"
   [[ ${filename} =~ packages/addons/addon-depends ]] && colw=80 || colw=50
 
-  printf "[%s] %3s: %-*s: %-25s: %s\n" "${txcolour}${level}${TXRESET}" "${flc}" ${colw} "${filename}" "${msg}" "${data}"
+  printf "[%s] %3s: %-*s: %-25s: %s\n" "${txcolour}${level}${TXRESET}" "$flc" "$colw" "$filename" "$msg" "$data"
 }
 
 process_line() {
   local filename="$1" lc="$2" line="$3" inassign="$4" funcname="$5"
   local var matches assignallowed=Y
 
-  if [ -n "${funcname}" -a "${funcname}" != "configure_package" -a "${inassign}" = "Y" ]; then
+  if [ "$funcname" != "" -a "$funcname" != "configure_package" -a "$inassign" = "Y" ]; then
     if [[ ${line} =~ PKG_DEPENDS_.*= ]]; then
-      log "${filename}" ${lc} "WARN" "ignored depends assign" "${funcname}() => ${line//[[:space:]]*PKG_DEPENDS_/PKG_DEPENDS_}"
+      log "$filename" "$lc" "WARN" "ignored depends assign" "${funcname}() => ${line//[[:space:]]*PKG_DEPENDS_/PKG_DEPENDS_}"
     fi
   fi
 
-  [ -n "${funcname}" ] && return 0
+  [ "$funcname" != "" ] && return 0
 
   rightside="${line#*=}"
 
@@ -56,11 +56,11 @@ process_line() {
              ; do
 
     # After PKG_DIR, treat assigns to var as invalid
-    [ "${var}" = "PKG_DIR" ] && assignallowed=N
+    [ "$var" = "PKG_DIR" ] && assignallowed=N
 
-    if [ "${assignallowed}" = "N" ]; then
+    if [ "$assignallowed" = "N" ]; then
       if [[ ${line} =~ (^|[[:space:]])${var}= ]]; then
-        [ "${inassign}" = "N" ] && matches+=", assign to ${var}"
+        [ "$inassign" = "N" ] && matches+=", assign to ${var}"
       fi
     fi
 
@@ -73,7 +73,7 @@ process_line() {
     fi
   done
 
-  [ -n "${matches}" ] && log "${filename}" ${lc} "FAIL" "late binding violation" "${matches:2}"
+  [ "$matches" != "" ] && log "$filename" "$lc" "FAIL" "late binding violation" "${matches:2}"
 }
 
 init_target_funcs() {
@@ -99,14 +99,14 @@ check_func_name() {
            pre_unpack unpack post_unpack \
            pre_patch post_patch \
            pre_configure \
-           ${TARGET_FUNCS} \
+           "$TARGET_FUNCS" \
            pre_install post_install \
            addon post_install_addon \
            ; do
     [[ ${line} =~ ^${f} ]] && return 0
   done
 
-  log "${filename}" ${lc} "WARN" "unknown function" "${line// *{*/}"
+  log "$filename" "$lc" "WARN" "unknown function" "$line"
 }
 
 process_pkg() {
@@ -118,48 +118,48 @@ process_pkg() {
     [[ ${line} =~ ^[[:space:]]*$ ]] && continue
     [[ ${line} =~ ^(|[[:space:]]*)# ]] && continue
 
-    if [[ "${line}" =~ ^[^#]*\(\)[[:space:]]*$ ]]; then
-      log "${filename}" ${lc} "FAIL" "bad func - missing brace" "${line}"
+    if [[ "$line" =~ ^[^#]*\(\)[[:space:]]*$ ]]; then
+      log "$filename" "$lc" "FAIL" "bad func - missing brace" "$line"
     fi
 
-    if [[ "${line}" =~ \(\)[[:space:]]*\{ ]]; then
+    if [[ "$line" =~ \(\)[[:space:]]*\{ ]]; then
       funcname="${line//(*/}"
       fc=$((fc+1))
-      check_func_name "${filename}" "${lc}" "${line}"
+      check_func_name "$filename" "$lc" "$line"
     fi
 
-    if [ "${intertwined}" = "N" -a -z "${funcname}" -a ${fc} -ge 1 ]; then
-      log "${filename}" ${lc} "WARN" "intertwined vars & funcs" "${line}"
+    if [ "$intertwined" = "N" -a -z "$funcname" -a "$fc" -ge 1 ]; then
+      log "$filename" "$lc" "WARN" "intertwined vars & funcs" "$line"
       intertwined=Y
     fi
 
-    [[ "${line}" =~ ^[[:space:]]*PKG_.*=\" ]] && isassign=Y
+    [[ "$line" =~ ^[[:space:]]*PKG_.*=\" ]] && isassign=Y
 
-    process_line "$1" "${lc}" "${line}" "${isassign}" "${funcname}"
+    process_line "$1" "$lc" "$line" "$isassign" "$funcname"
 
-    [[ "${line}" =~ (\"$|\"[[:space:]]*$|\"[[:space:]]*#.*$) ]] && isassign=N
-    [[ "${line}" =~ (^}|^[[:space:]]*}) ]] && funcname=
-  done < "${filename}"
+    [[ "$line" =~ (\"$|\"[[:space:]]*$|\"[[:space:]]*#.*$) ]] && isassign=N
+    [[ "$line" =~ (^}|^[[:space:]]*}) ]] && funcname=
+  done < "$filename"
 
   # Duplicate function check
   while read -r count line; do
-    [ -n "${line}" ] && log "${filename}" 0 "FAIL" "duplicate function def" "${line}"
-  done <<< "$(grep -E ".*() {" "${filename}" | sed 's/[[:space:]]*{.*//' | sort | uniq -c | grep -v ^[[:space:]]*1[[:space:]])"
+    [ "$line" != "" ] && log "$filename" 0 "FAIL" "duplicate function def" "$line"
+  done <<< "$(grep -E ".*() {" "$filename" | sed 's/[[:space:]]*{.*//' | sort | uniq -c | grep -v ^[[:space:]]*1[[:space:]])"
 }
 
 TARGET_FUNCS="$(init_target_funcs)"
 
 if [ $# -ne 0 ]; then
-  for arg in ${@}; do
-    for p in $(find packages projects -type f -path */${arg}/package.mk | sort); do
+  for arg in "${@}"; do
+    for p in "$(find packages projects -type f -path */"$arg"/package.mk | sort)"; do
       echo -en "${TXCLR}${p}...\r" >&2
-      process_pkg "${p}"
+      process_pkg "$p"
     done
   done
 else
-  for p in $(find packages projects -type f -name package.mk | sort); do
+  for p in "$(find packages projects -type f -name package.mk | sort)"; do
     echo -en "${TXCLR}${p}...\r" >&2
-    process_pkg "${p}"
+    process_pkg "$p"
   done
 fi
-echo -en "${TXCLR}" >&2
+echo -en "$TXCLR" >&2

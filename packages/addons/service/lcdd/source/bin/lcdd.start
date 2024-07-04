@@ -6,18 +6,18 @@
 . /etc/profile
 oe_setup_addon service.lcdd
 
-if [ -z "$LCD_DRIVER" -o "$LCD_DRIVER" == "none" ]; then
+if [ "$LCD_DRIVER" = "" -o "$LCD_DRIVER" == "none" ]; then
   exit 0
 fi
 
 LCDCONF=$ADDON_HOME/LCDd.conf
 
-if [ ! -f $LCDCONF ]; then
+if [ ! -f "$LCDCONF" ]; then
   if [ -f /storage/.cache/LCDd.conf ]; then
-    mv /storage/.cache/LCDd.conf $LCDCONF
+    mv /storage/.cache/LCDd.conf "$LCDCONF"
   else
-    cp $ADDON_DIR/config/LCDd.conf $LCDCONF
+    cp "$ADDON_DIR"/config/LCDd.conf "$LCDCONF"
   fi
 fi
 
-LCDd -f -c $LCDCONF -d $LCD_DRIVER
+LCDd -f -c "$LCDCONF" -d "$LCD_DRIVER"

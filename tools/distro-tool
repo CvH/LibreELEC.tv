@@ -7,7 +7,7 @@ set -e
 
 export NOONEXIT=yes
 
-[ -z "${DEBUG_LOG}" ] && DEBUG_LOG=/tmp/distro-tool.log
+[ "$DEBUG_LOG" = "" ] && DEBUG_LOG=/tmp/distro-tool.log
 
 LIBREELEC_DIR=$HOME/LibreELEC.tv
 TARGET_DIR=$HOME/sources
@@ -695,11 +695,11 @@ if __name__ == "__main__":
     raise
 '
 
-[ -z "${PROJECT}" ] && PROJECT=Generic
-[ -z "${ARCH}" ]    && ARCH=x86_64
+[ "$PROJECT" = "" ] && PROJECT=Generic
+[ "$ARCH" = "" ]    && ARCH=x86_64
 
 help() {
-  [ -n "$1" ] && echo -e "ERROR: Unknown argument [$1]\n"
+  [ "$1" != "" ] && echo -e "ERROR: Unknown argument [$1]\n"
   cat <<EOF
 Usage: $(basename $0) -d|--download <path> [-t|--target <path>] [-l|--libreelec <path>]
            [-m|--mirror] [-s|--source] [-a|-all] [-p|--package <package_name> [-r|--revision <revision>]]
@@ -738,14 +738,14 @@ EOF
 }
 
 get_libreelec_branch() {
-  cd $LIBREELEC_DIR
+  cd "$LIBREELEC_DIR"
   git rev-parse --abbrev-ref HEAD
 }
 
 # 1: LibreELEC variable, eg. LIBREELEC_VERSION
 get_libreelec_option() {
   local variable="$1"
-  cd $LIBREELEC_DIR
+  cd "$LIBREELEC_DIR"
   source config/options ""
   echo "${!variable}"
 }
@@ -756,13 +756,13 @@ generate_work() {
   local workfile_o
   local tcount=0
 
-  [ ${PROGRESS} = yes ] && echo -en "Acquiring packages...\r" >&2
+  [ "$PROGRESS" = yes ] && echo -en "Acquiring packages...\r" >&2
 
-  packages="$(get_packages "${package_name}" "${path_filter}")"
-  pcount="$(echo "${packages}" | wc -l)"
+  packages="$(get_packages "$package_name" "$path_filter")"
+  pcount="$(echo "$packages" | wc -l)"
 
-  if [ -n "${package_name}" -a -z "${packages}" ]; then
-    if [ -n "${path_filter}" ]; then
+  if [ "$package_name" != "" -a -z "$packages" ]; then
+    if [ "$path_filter" != "" ]; then
       echo "ERROR: ${package_name} is not a valid package when using filter ${path_filter} - package.mk does not exist" >&2
     else
       echo "ERROR: ${package_name} is not a valid package - package.mk does not exist" >&2
@@ -770,14 +770,14 @@ generate_work() {
     exit 1
   fi
 
-  rm -f ${WORKFILES_I}.* ${WORKFILES_O}.*
+  rm -f "$WORKFILES_I".* "$WORKFILES_O".*
 
   # Distribute packages across workers
   tcount=0
-  for package_name in ${packages}; do
+  for package_name in "$packages"; do
     tcount=$((tcount + 1))
-    [ ${tcount} -gt ${WORKER_MAX} ] && tcount=1
-    echo "$package_name" >>$(printf "%s.%02d" "${WORKFILES_I}" ${tcount})
+    [ "$tcount" -gt "$WORKER_MAX" ] && tcount=1
+    echo "$package_name" >>"$(printf "%s.%02d" "$WORKFILES_I" "$tcount")"
   done
 
   # Generate workload using multiple "threads" (cores, hopefully...)
@@ -787,8 +787,8 @@ generate_work() {
 
   while [ : ]; do
     tcount=$((tcount + 1))
-    [ ${tcount} -gt ${WORKER_MAX} ] && break
-    generate_work_worker ${pcount} ${tcount} ${revision} &
+    [ "$tcount" -gt "$WORKER_MAX" ] && break
+    generate_work_worker "$pcount" "$tcount" "$revision" &
   done
   wait
 
@@ -799,48 +799,48 @@ generate_work() {
   tcount=0
   while [ : ]; do
     tcount=$((tcount + 1))
-    [ ${tcount} -gt ${WORKER_MAX} ] && break
-    workfile_o=$(printf "%s.%02d" "${WORKFILES_O}" ${tcount})
-    if [ -s ${workfile_o} ]; then
-      [ ${tcount} -ne 1 ] && echo ","
+    [ "$tcount" -gt "$WORKER_MAX" ] && break
+    workfile_o=$(printf "%s.%02d" "$WORKFILES_O" "$tcount")
+    if [ -s "$workfile_o" ]; then
+      [ "$tcount" -ne 1 ] && echo ","
       # Strip comma from line of file - not valid if this is the last file
-      sed '$ s/  },/  }/' ${workfile_o}
+      sed '$ s/  },/  }/' "$workfile_o"
     fi
   done
   echo "]"
 
   # Clean up
-  rm -f ${WORKFILES_I}.* ${WORKFILES_O}.*
+  rm -f "$WORKFILES_I".* "$WORKFILES_O".*
 }
 
 generate_work_worker() {
   local pcount=$1 worker="$2" revision="$3"
-  local workfile_i="$(printf "%s.%02d" "${WORKFILES_I}" ${worker})"
-  local workfile_o="$(printf "%s.%02d" "${WORKFILES_O}" ${worker})"
+  local workfile_i="$(printf "%s.%02d" "$WORKFILES_I" "$worker")"
+  local workfile_o="$(printf "%s.%02d" "$WORKFILES_O" "$worker")"
   local wanted_vars="PKG_NAME PKG_VERSION PKG_URL PKG_SHA256 PKG_DIR PKG_SECTION PKG_IS_ADDON PKG_SOURCE_NAME"
   local package_name var comma PKG_URL PKG_SOURCE_NAME PKG_VERSION PKG_IS_ADDON
 
-  [ -f "${workfile_i}" ] || return 0
+  [ -f "$workfile_i" ] || return 0
   (
     # Override exit function so that packages calling exit don't terminate this sub-shell
     exit() {
       :
     }
 
-    cd $LIBREELEC_DIR
+    cd "$LIBREELEC_DIR"
 
     source config/options ""
 
     while read -r package_name; do
-      [ ${PROGRESS} = yes ] && progress ${pcount}
+      [ "$PROGRESS" = yes ] && progress "$pcount"
 
-      source_package ${package_name} &>/dev/null || true
-      [ -z "${PKG_DIR}" ] && continue
+      source_package "$package_name" &>/dev/null || true
+      [ "$PKG_DIR" = "" ] && continue
 
-      if [ -n "${revision}" ]; then
+      if [ "$revision" != "" ]; then
         PKG_URL="${PKG_URL/${PKG_VERSION}/${revision}}"
         PKG_SOURCE_NAME="${PKG_SOURCE_NAME/${PKG_VERSION}/${revision}}"
-        PKG_VERSION="${revision}"
+        PKG_VERSION="$revision"
         PKG_SHA256=
       fi
 
@@ -848,18 +848,18 @@ generate_work_worker() {
       [[ ${PKG_DIR/${LIBREELEC_DIR}/} =~ ^/packages/addons/.* ]] && PKG_IS_ADDON=Yes
       [[ ${PKG_DIR/${LIBREELEC_DIR}/} =~ ^/packages/mediacenter/kodi-binary-addons/.* ]] && PKG_IS_ADDON=Yes
 
-      echo "  {" >>${workfile_o}
-      for var in ${wanted_vars}; do
-        [ "${var}" != "PKG_SOURCE_NAME" ] && comma="," || comma=
-        echo "    \"${var}\": \"${!var}\"${comma}" >>${workfile_o}
+      echo "  {" >>"$workfile_o"
+      for var in "$wanted_vars"; do
+        [ "$var" != "PKG_SOURCE_NAME" ] && comma="," || comma=
+        echo "    \"${var}\": \"${!var}\"${comma}" >>"$workfile_o"
       done
-      echo "  }," >>${workfile_o}
-    done < ${workfile_i}
+      echo "  }," >>"$workfile_o"
+    done < "$workfile_i"
   )
 }
 
 check_exists() {
-  if [ -z "${!1}" ]; then
+  if [ "${!1}" = "" ]; then
     echo "ERROR: ${1} must not be undefined"
     return 1
   fi
@@ -871,7 +871,7 @@ check_exists() {
 }
 
 get_abs_path() {
-  echo "$(readlink -f $1)"
+  echo "$(readlink -f "$1")"
 }
 
 get_package_path() {
@@ -883,24 +883,24 @@ get_packages() {
   local anchor="@?+?@"
 
   (
-    cd $LIBREELEC_DIR
+    cd "$LIBREELEC_DIR"
 
     # Generate package caches...
     source config/options ""
 
     cache_data="${BUILD}/.cache_package_global ${BUILD}/.cache_package_local"
 
-    if [ -n "${path_filter}" ]; then
-      if [ -n "${package_name}" ]; then
-        grep -F "/${path_filter}/" ${cache_data} | grep -F "/${package_name}${anchor}"
+    if [ "$path_filter" != "" ]; then
+      if [ "$package_name" != "" ]; then
+        grep -F "/${path_filter}/" "$cache_data" | grep -F "/${package_name}${anchor}"
       else
-        grep -F "/${path_filter}/" ${cache_data}
+        grep -F "/${path_filter}/" "$cache_data"
       fi
     else
-      if [ -n "${package_name}" ]; then
-        grep -F "/${package_name}${anchor}" ${cache_data}
+      if [ "$package_name" != "" ]; then
+        grep -F "/${package_name}${anchor}" "$cache_data"
       else
-        cat ${cache_data}
+        cat "$cache_data"
       fi
     fi
   ) | sed "s#${anchor}\$##g;s#/# #g" | awk '{print $NF}' | sort -u
@@ -909,35 +909,35 @@ get_packages() {
 }
 
 init_progress() {
-  echo 0 > ${LOCKFILE}
+  echo 0 > "$LOCKFILE"
 }
 
 progress() {
   local count
   (
     flock -x 9
-    count=$(($(< ${LOCKFILE}) + 1))
-    echo "${count}" >${LOCKFILE}
-    printf "Generating workload... %3d%% (%d of %d)\r" $((count * 100 / $1)) ${count} $1 >&2
-  ) 9< "${LOCKFILE}"
+    count=$(($(< "$LOCKFILE") + 1))
+    echo "$count" >"$LOCKFILE"
+    printf "Generating workload... %3d%% (%d of %d)\r" $((count * 100 / $1)) "$count" "$1" >&2
+  ) 9< "$LOCKFILE"
 }
 
 end_progress() {
-  rm -f ${LOCKFILE}
+  rm -f "$LOCKFILE"
   printf "\033[K\r" >&2
 }
 
 exec_worker_prog() {
-  echo "${PYTHON_PROG}" >/tmp/distro-tool.py
-  python3 /tmp/distro-tool.py "${DOWNLOAD_DIR}" "${TARGET_DIR}" "${DISTRO_SOURCE}" "${DISTRO_MIRROR}" \
-                              "${IS_MIRROR}" "${IGNORE_ERRORS}" "${DRY_RUN}" "${CHECK_NEWER}" \
-                              "${PROGRESS}" "${WORKER_THREADS}" "${GIT_USERNAME}" "${GIT_PASSWORD}" \
-                              "${CHECK_FILTER_CLASS}" "${CHECK_FILTER_TYPE}" ${VERIFY_CHECKSUM} "${VERBOSE}"
+  echo "$PYTHON_PROG" >/tmp/distro-tool.py
+  python3 /tmp/distro-tool.py "$DOWNLOAD_DIR" "$TARGET_DIR" "$DISTRO_SOURCE" "$DISTRO_MIRROR" \
+                              "$IS_MIRROR" "$IGNORE_ERRORS" "$DRY_RUN" "$CHECK_NEWER" \
+                              "$PROGRESS" "$WORKER_THREADS" "$GIT_USERNAME" "$GIT_PASSWORD" \
+                              "$CHECK_FILTER_CLASS" "$CHECK_FILTER_TYPE" "$VERIFY_CHECKSUM" "$VERBOSE"
   rm -f /tmp/distro-tool.py
 }
 
 while [ : ]; do
-  [ -z "$1" ] && break
+  [ "$1" = "" ] && break
   case $1 in
     -d|--download)
       shift
@@ -992,7 +992,7 @@ while [ : ]; do
       ;;
     -T|--threads)
       shift
-      [ $1 -gt 0 ] && WORKER_THREADS=$1
+      [ "$1" -gt 0 ] && WORKER_THREADS=$1
       ;;
     -U|--gituser)
       shift
@@ -1027,49 +1027,49 @@ while [ : ]; do
   shift
 done
 
-[ -n "${PACKAGE}" -a ${VERBOSE} -eq 0 ] && VERBOSE=1
+[ "$PACKAGE" != "" -a "$VERBOSE" -eq 0 ] && VERBOSE=1
 
-if [ ${DOGIT} = yes ]; then
+if [ "$DOGIT" = yes ]; then
   (
-    if [ -d ${LIBREELEC_DIR}/.git ]; then
-      cd ${LIBREELEC_DIR}
+    if [ -d "$LIBREELEC_DIR"/.git ]; then
+      cd "$LIBREELEC_DIR"
       git pull
     else
-      mkdir -p $(dirname "${LIBREELEC_DIR}") 2>/dev/null
-      cd $(dirname "${LIBREELEC_DIR}")
-      git clone https://github.com/LibreELEC/LibreELEC.tv.git $(basename "${LIBREELEC_DIR}")
+      mkdir -p "$(dirname "$LIBREELEC_DIR")" 2>/dev/null
+      cd "$(dirname "$LIBREELEC_DIR")"
+      git clone https://github.com/LibreELEC/LibreELEC.tv.git "$(basename "$LIBREELEC_DIR")"
     fi
   )
 fi
 
 check_exists LIBREELEC_DIR || exit
-LIBREELEC_DIR="$(get_abs_path "${LIBREELEC_DIR}")"
+LIBREELEC_DIR="$(get_abs_path "$LIBREELEC_DIR")"
 
 DISTRO_SOURCE="$(get_libreelec_option DISTRO_SRC)"
 DISTRO_MIRROR="$(get_libreelec_option DISTRO_MIRROR)"
 LIBREELEC_VER="$(get_libreelec_option LIBREELEC_VERSION)"
 
-if [ ${IS_MIRROR} = no ]; then
+if [ "$IS_MIRROR" = no ]; then
   TARGET_DIR="$(get_abs_path "${TARGET_DIR}/${LIBREELEC_VER}")"
 else
   TARGET_DIR="$(get_abs_path "${TARGET_DIR}/mirror")"
 fi
 check_exists TARGET_DIR || exit
 
-if [ ${IS_MIRROR} = no ]; then
+if [ "$IS_MIRROR" = no ]; then
   DOWNLOAD_DIR="$(get_abs_path "${DOWNLOAD_DIR}/${LIBREELEC_VER}")"
 else
   DOWNLOAD_DIR="$(get_abs_path "${DOWNLOAD_DIR}/mirror")"
 fi
 check_exists DOWNLOAD_DIR || exit
 
-if [ -n "${REVISION}" -a -z "${PACKAGE}" ]; then
+if [ "$REVISION" != "" -a -z "$PACKAGE" ]; then
   echo "ERROR: A single package must be specified with custom revision"
   exit 1
 fi
 
 echo
-if [ ${IS_MIRROR} = yes ]; then
+if [ "$IS_MIRROR" = yes ]; then
   echo "Synchronising LibreELEC.tv (branch: $(get_libreelec_branch), version: ${LIBREELEC_VER}) with MIRROR server ${TARGET_DIR}"
 else
   echo "Synchronising LibreELEC.tv (branch: $(get_libreelec_branch), version: ${LIBREELEC_VER}) with SOURCE server ${TARGET_DIR}"
@@ -1079,19 +1079,19 @@ echo "Distro Source is: ${DISTRO_SOURCE}"
 echo "Distro Mirror is: ${DISTRO_MIRROR}"
 echo " Syncing against: ${TARGET_DIR}"
 echo "  Downloading to: ${DOWNLOAD_DIR}"
-if [ -n "${PATH_FILTER}" ]; then
+if [ "$PATH_FILTER" != "" ]; then
   echo "     Path filter: ${PATH_FILTER}"
 fi
 echo "     Check Newer: ${CHECK_NEWER^}  Class/Type: ${CHECK_FILTER_CLASS} / ${CHECK_FILTER_TYPE}"
 echo "         Dry run: ${DRY_RUN^}"
-if [ ${VERBOSE} -gt 2 ]; then
+if [ "$VERBOSE" -gt 2 ]; then
   echo " Debugging level: ${VERBOSE} (${DEBUG_LOG})"
   echo "  Worker Threads: ${WORKER_THREADS}"
 fi
 echo
 
-if [ ${VERBOSE} -gt 2 -a -n "${DEBUG_LOG}" ]; then
-  generate_work "${PACKAGE}" "${REVISION}" "${PATH_FILTER}" | exec_worker_prog 2>${DEBUG_LOG}
+if [ "$VERBOSE" -gt 2 -a -n "$DEBUG_LOG" ]; then
+  generate_work "$PACKAGE" "$REVISION" "$PATH_FILTER" | exec_worker_prog 2>"$DEBUG_LOG"
 else
-  generate_work "${PACKAGE}" "${REVISION}" "${PATH_FILTER}" | exec_worker_prog
+  generate_work "$PACKAGE" "$REVISION" "$PATH_FILTER" | exec_worker_prog
 fi

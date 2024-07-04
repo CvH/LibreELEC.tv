@@ -12,7 +12,7 @@ if [ -d /usr/share/kodi/addons/service.touchscreen ]; then
   ADDON_DIR="/usr/share/kodi/addons/service.touchscreen"
 fi
 
-. $ADDON_DIR/bin/ts_env.sh
+. "$ADDON_DIR"/bin/ts_env.sh
 
 echo "touchscreen device: $TSLIB_TSDEVICE"
 
@@ -23,7 +23,7 @@ if [ "$1" = "service" ]; then
     mkdir -p /var/config
 
     # check settings version
-    XML_SETTINGS_VER="$(xmlstarlet sel -t -m settings -v @version $SETTINGS_XML)"
+    XML_SETTINGS_VER="$(xmlstarlet sel -t -m settings -v @version "$SETTINGS_XML")"
     if [ "$XML_SETTINGS_VER" = "2" ]; then
       xmlstarlet sel -t -m settings/setting -v @id -o "=\"" -v . -o "\"" -n "$SETTINGS_XML" > /var/config/ts_calibration_addon.conf
     else
@@ -34,13 +34,13 @@ if [ "$1" = "service" ]; then
 
     if [ "$TS_RECALIBRATE" = "true" ]; then
       sed -i 's|id="TS_RECALIBRATE"[ ]*value="true"|id="TS_RECALIBRATE" value="false"|g' "$SETTINGS_XML"
-      touch $ADDON_HOME/recalibrate
+      touch "$ADDON_HOME"/recalibrate
     fi
   fi
 
-  if [ -f $ADDON_HOME/recalibrate ]; then
+  if [ -f "$ADDON_HOME"/recalibrate ]; then
     echo "recalibrating..."
-    rm -f $ADDON_HOME/recalibrate
+    rm -f "$ADDON_HOME"/recalibrate
     ts_calibrate
   fi
 else

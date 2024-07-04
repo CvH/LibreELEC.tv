@@ -8,9 +8,9 @@ UNSTABLE\: This is a placeholder\. Commits after this point are considered exper
 "
 
 IFS=$'\n'
-for COMMIT in $DROP_COMMITS; do
-  sed -i -E "s/^pick ([0-9a-f]+) (${COMMIT}.*)/drop \1 \2/g" $TODO
+for COMMIT in "${DROP_COMMITS[@]}"; do
+  sed -i -E "s/^pick ([0-9a-f]+) (${COMMIT}.*)/drop \1 \2/g" "$TODO"
 done
 
-grep -E "^drop " $TODO > /tmp/dropped
-sed -i -E "/^drop /d" $TODO
+grep -E "^drop " "$TODO" > /tmp/dropped
+sed -i -E "/^drop /d" "$TODO"

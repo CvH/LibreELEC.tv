@@ -14,42 +14,42 @@ SYSTEMCTL="/usr/bin/systemctl"
 CONNMANCTL="/usr/bin/connmanctl"
 
 check_docker() {
-  $SYSTEMCTL is-active --quiet $DOCKER && $SYSTEMCTL restart $DOCKER
+  "$SYSTEMCTL" is-active --quiet "$DOCKER" && "$SYSTEMCTL" restart "$DOCKER"
 }
 
 get_technology_config() {
-  $CONNMANCTL technologies | awk -v pattern="^/.*/technology/$1$" -e 'BEGIN {S=0}; /^\/.*/ {S=0}; $0 ~ pattern {S=1}; S==1 {print $0}'
+  "$CONNMANCTL" technologies | awk -v pattern="^/.*/technology/$1$" -e 'BEGIN {S=0}; /^\/.*/ {S=0}; $0 ~ pattern {S=1}; S==1 {print $0}'
 }
 
 check_tether() {
   for technology in wifi ethernet; do
-    if get_technology_config $technology | grep -q 'Tethering = True'; then
-      $CONNMANCTL tether $technology off
+    if get_technology_config "$technology" | grep -q 'Tethering = True'; then
+      "$CONNMANCTL" tether "$technology" off
       sleep 1
-      $CONNMANCTL tether $technology on
+      "$CONNMANCTL" tether "$technology" on
       break
     fi
   done
 }
 
 flush() {
-  for cmd in $IPTABLES_CMDS; do
-    $cmd -F
-    $cmd -X
-    $cmd -t nat -F
-    $cmd -t nat -X
-    $cmd -t mangle -F
-    $cmd -t mangle -X
-    $cmd -P INPUT ACCEPT
-    $cmd -P FORWARD ACCEPT
-    $cmd -P OUTPUT ACCEPT
+  for cmd in "${IPTABLES_CMDS[@]}"; do
+    "$cmd" -F
+    "$cmd" -X
+    "$cmd" -t nat -F
+    "$cmd" -t nat -X
+    "$cmd" -t mangle -F
+    "$cmd" -t mangle -X
+    "$cmd" -P INPUT ACCEPT
+    "$cmd" -P FORWARD ACCEPT
+    "$cmd" -P OUTPUT ACCEPT
   done
   check_docker
   check_tether
 }
 
 enable() {
-  for cmd in $IPTABLES_CMDS; do
+  for cmd in "${IPTABLES_CMDS[@]}"; do
     case "$cmd" in
       *6*) 
          rules="$RULES6"
@@ -69,7 +69,7 @@ enable() {
 }
 
 if [ "$1" = "enable" ]; then
-  case "${RULES}" in
+  case "$RULES" in
     "none") 
        flush
        ;;

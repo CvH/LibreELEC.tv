@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
-name="$(basename $0)"
+name="$(basename "$0")"
 . /etc/profile
 oe_setup_addon "$name"
 

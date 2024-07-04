@@ -8,7 +8,7 @@ COMPATIBLE=$(cat /proc/device-tree/compatible 2>/dev/null | tr -d '\000' | sed -
 do_dtfile(){
   if [[ -n $(find /flash -name extlinux.conf) ]]; then
     EXTLINUX=$(find /flash -name extlinux.conf)
-    DTFILE=$(grep FDT "${EXTLINUX}" | sed 's,^ *FDT /,,g')
+    DTFILE=$(grep FDT "$EXTLINUX" | sed 's,^ *FDT /,,g')
   elif [ -e /flash/boot.ini ]; then
     DTFILE=$(grep -m 1 dtb_name /flash/boot.ini | cut -d \" -f2 | sed 's,/dtb/,,g')
   elif [ -e /flash/uEnv.ini ]; then
@@ -16,14 +16,14 @@ do_dtfile(){
   else
     do_unknown
   fi
-  echo "${DTFILE}"
+  echo "$DTFILE"
 }
 
 do_dtflag(){
-  if [ "${COMPATIBLE}" = "raspberrypi" ]; then
+  if [ "$COMPATIBLE" = "raspberrypi" ]; then
     DTFLAG=$(cat /proc/device-tree/compatible | cut -f1,2 -d',' | head -n 1)
     PIREV=$(awk '/^Revision/ {sub($3,-6, "", $3); print $3}' /proc/cpuinfo) # truncate to 6-chars
-    case "${PIREV}" in
+    case "$PIREV" in
       d*)
         MEMSIZE="-8g"
         ;;
@@ -49,7 +49,7 @@ do_dtflag(){
   else
     DTFLAG=$(cat /proc/device-tree/compatible | cut -f1,2 -d',' | head -n 1)
     MEMSIZE=$(awk -F " " '/MemTotal:/ {print $2}' /proc/meminfo)
-    if [ "${MEMSIZE}" -lt "524288" ]; then
+    if [ "$MEMSIZE" -lt "524288" ]; then
       MEMSIZE="-512"
     else
       MEMSIZE=""
@@ -60,12 +60,12 @@ do_dtflag(){
 
 do_dtname(){
   DTNAME=$(cat /proc/device-tree/compatible | cut -f1,2 -d',' | head -n 1)
-  echo "${DTNAME}"
+  echo "$DTNAME"
 }
 
 do_dtsoc(){
   DTSOC=$(cat /proc/device-tree/compatible | cut -f1,2 -d',' | tail -n 1)
-  echo "${DTSOC}"
+  echo "$DTSOC"
 }
 
 do_unknown(){
@@ -73,7 +73,7 @@ do_unknown(){
   exit 1
 }
 
-if [ -n "${COMPATIBLE}" ]; then
+if [ "$COMPATIBLE" != "" ]; then
   case $(basename "${0}") in
     dtfile)
       do_dtfile

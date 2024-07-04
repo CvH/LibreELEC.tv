@@ -125,7 +125,7 @@ check_file() {
 
 check_content() {
   # check if changes are already made to $file and exit if yes
-  if grep -q "initrd=/edid.cpio" $file ; then
+  if grep -q "initrd=/edid.cpio" "$file" ; then
     echo "$file has been modified. Please run 'getedid delete' first if you want to modify it again. Exiting."
     exit 5
   fi
@@ -152,7 +152,7 @@ intel_amd() {
   for i in /sys/class/drm/*; do
     if [ "$(cat "$i"/status 2>/dev/null)" = "connected" ]; then
       counter=$((counter + 1))
-      if [ $counter -gt 0 -a $counter -lt 2 ]; then
+      if [ "$counter" -gt 0 -a "$counter" -lt 2 ]; then
         card="$(echo "$i" | cut -d / -f 5)"
         hdmi="$(echo "$i" | cut -d / -f 5 | sed 's/card[0-9]-//g')"
       else

@@ -22,5 +22,5 @@ message="$message\n with LibreELEC"
 message="$message\n "
 message="$message\n TIP: use Kodi's addon browser to enhance your LibreELEC system"
 
-echo -e $message
+echo -e "$message"
 exit 1

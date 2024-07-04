@@ -6,30 +6,30 @@
 
 KODI_ROOT=$HOME/.kodi
 
-BOOT_STATE="$(cat $HOME/.config/boot.status 2>/dev/null)"
+BOOT_STATE="$(cat "$HOME"/.config/boot.status 2>/dev/null)"
 
 # May not exist if testing a clean /storage/.kodi without rebooting
-mkdir -p $KODI_ROOT/userdata
+mkdir -p "$KODI_ROOT"/userdata
 
 # hack: make addon-bins executable
 # done in kodi on addon install. but just in case..
-chmod +x $KODI_ROOT/addons/*/bin/* 2>/dev/null
+chmod +x "$KODI_ROOT"/addons/*/bin/* 2>/dev/null
 
 # setup Kodi sources
-if [ ! -f $KODI_ROOT/userdata/sources.xml ]; then
+if [ ! -f "$KODI_ROOT"/userdata/sources.xml ]; then
   if [ -f /usr/share/kodi/config/sources.xml ]; then
-    cp /usr/share/kodi/config/sources.xml $KODI_ROOT/userdata
+    cp /usr/share/kodi/config/sources.xml "$KODI_ROOT"/userdata
   fi
 fi
 
 # common setup guisettings
-if [ ! -f $KODI_ROOT/userdata/guisettings.xml ] ; then
+if [ ! -f "$KODI_ROOT"/userdata/guisettings.xml ] ; then
   if [ -f /usr/share/kodi/config/guisettings.xml ]; then
-    cp /usr/share/kodi/config/guisettings.xml $KODI_ROOT/userdata
+    cp /usr/share/kodi/config/guisettings.xml "$KODI_ROOT"/userdata
   fi
   if [ "$BOOT_STATE" = "SAFE" ]; then
-    [ ! -f $KODI_ROOT/userdata/guisettings.xml ] && echo '<settings version="2"></settings>' > $KODI_ROOT/userdata/guisettings.xml
-    xmlstarlet ed --omit-decl --inplace -s settings -t elem -n setting -v "maroon" -i settings/setting -t attr -n id -v lookandfeel.skincolors $KODI_ROOT/userdata/guisettings.xml
+    [ ! -f "$KODI_ROOT"/userdata/guisettings.xml ] && echo '<settings version="2"></settings>' > "$KODI_ROOT"/userdata/guisettings.xml
+    xmlstarlet ed --omit-decl --inplace -s settings -t elem -n setting -v "maroon" -i settings/setting -t attr -n id -v lookandfeel.skincolors "$KODI_ROOT"/userdata/guisettings.xml
   fi
 fi
 

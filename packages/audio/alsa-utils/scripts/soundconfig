@@ -8,8 +8,8 @@
 
 mixer() {
   parm=${4:-on}
-  amixer -c "$1" sset "$2" "$3" $parm >/dev/null 2>&1
-  amixer -c "$1" sset "$2" $parm >/dev/null 2>&1
+  amixer -c "$1" sset "$2" "$3" "$parm" >/dev/null 2>&1
+  amixer -c "$1" sset "$2" "$parm" >/dev/null 2>&1
 }
 
 (
@@ -17,14 +17,14 @@ mixer() {
 
 progress "Setting up sound card"
 
-if [ -f $HOME/.config/sound.conf ]; then
+if [ -f "$HOME"/.config/sound.conf ]; then
 
-  alsactl restore -f $HOME/.config/sound.conf
+  alsactl restore -f "$HOME"/.config/sound.conf
 
 else
 
 # get card num
-  card=`echo $1 | sed 's/[^0-9]*//g'`
+  card=`echo "$1" | sed 's/[^0-9]*//g'`
 
 # set common mixer params
   mixer "$card" Master 0db
@@ -133,13 +133,13 @@ else
     amlogic,g12*|amlogic,sm1)
       # AXG HDMI // Logic assumes TDMOUT_A is not present in device-tree when TDMOUT_B is used
       TDMOUT=$(awk '/TDMOUT/ && $2=="OUT" {print substr($1,length($1),1)}' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
-      if [ "${TDMOUT}" = "A" ]; then
+      if [ "$TDMOUT" = "A" ]; then
         mixer "$card" 'FRDDR_A SINK 1 SEL' 'OUT 0'
         mixer "$card" 'FRDDR_A SRC 1 EN' on
         mixer "$card" 'TDMOUT_A SRC SEL' 'IN 0'
         mixer "$card" 'TOHDMITX' on
         mixer "$card" 'TOHDMITX I2S SRC' 'I2S A'
-      elif [ "${TDMOUT}" = "B" ]; then
+      elif [ "$TDMOUT" = "B" ]; then
         mixer "$card" 'FRDDR_A SINK 1 SEL' 'OUT 1'
         mixer "$card" 'FRDDR_A SRC 1 EN' on
         mixer "$card" 'TDMOUT_B SRC SEL' 'IN 0'
@@ -148,7 +148,7 @@ else
       fi
       # AXG S/PDIF
       SPDIFOUT=$(awk '/SPDIF/' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
-      if [ -n "${SPDIFOUT}" ]; then
+      if [ "$SPDIFOUT" != "" ]; then
         mixer "$card" 'FRDDR_B SINK 1 SEL' 'OUT 3'
         mixer "$card" 'FRDDR_B SRC 1 EN' on
         mixer "$card" 'SPDIFOUT SRC SEL' 'IN 1'
@@ -156,7 +156,7 @@ else
       fi
       # AXG Headphone Jack
       ACODEC=$(awk '/ACODEC/' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
-      if [ -n "${ACODEC}" ]; then
+      if [ "$ACODEC" != "" ]; then
         mixer "$card" 'TOACODEC OUT EN' on
         mixer "$card" 'TOACODEC SRC' 'I2S ${TDMOUT}'
         mixer "$card" 'ACODEC Playback Switch' on

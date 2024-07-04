@@ -9,7 +9,7 @@ GPUINFO=/sys/kernel/debug/mali/version
 echo "GPUINFO: $GPUINFO"
 [ ! -f "$GPUINFO" ] && exit
 
-GPU=$(cat $GPUINFO)
+GPU=$(cat "$GPUINFO")
 echo "GPU: $GPU"
 
 case $GPU in
@@ -33,12 +33,12 @@ case $GPU in
 esac
 
 echo "LIB: $LIB"
-[ -z "$LIB" ] && exit
+[ "$LIB" = "" ] && exit
 
-LIBMALI=$(find /usr/lib -name $LIB)
+LIBMALI=$(find /usr/lib -name "$LIB")
 
 echo "LIBMALI: $LIBMALI"
 [ ! -f "$LIBMALI" ] && exit
 
 mkdir -p /var/lib/libmali
-ln -sf $LIBMALI /var/lib/libmali/libmali.so
+ln -sf "$LIBMALI" /var/lib/libmali/libmali.so

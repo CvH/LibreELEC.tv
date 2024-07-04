@@ -10,7 +10,7 @@ oe_setup_addon service.prometheus-node-exporter
 DAEMON_ARGS=""
 
 while read var opt ; do
-  eval [ \"\$${var}\" = "true" ] && DAEMON_ARGS="${DAEMON_ARGS} ${opt}"
+  eval [ \"\$"$var"\" = "true" ] && DAEMON_ARGS="${DAEMON_ARGS} ${opt}"
 done << EOF
 WebDisableExporterMetrics --web.disable-exporter-metrics
 CollectorArp --collector.arp
@@ -79,5 +79,5 @@ EOF
 /storage/.kodi/addons/service.prometheus-node-exporter/bin/prometheus-node-exporter --collector.disable-defaults \
   --web.listen-address=":$WebListenPort" \
   --web.telemetry-path="$WebTelemetryPath" \
-  --web.max-requests=$WebMaxRequest \
-  $DAEMON_ARGS
+  --web.max-requests="$WebMaxRequest" \
+  "$DAEMON_ARGS"

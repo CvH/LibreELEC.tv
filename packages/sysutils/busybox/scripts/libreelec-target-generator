@@ -10,14 +10,14 @@ log() {
   echo "libreelec-target-generator: $@" > /dev/kmsg
 }
 
-if [ -z "$EARLY_DIR" ]; then
+if [ "$EARLY_DIR" = "" ]; then
   log "error: generator directory missing"
   exit 1
 fi
 
 TARGET=""
 
-for arg in $(cat /proc/cmdline); do
+for arg in "$(cat /proc/cmdline)"; do
   case "$arg" in
     textmode)
       TARGET="textmode.target"
@@ -29,9 +29,9 @@ for arg in $(cat /proc/cmdline); do
 done
 
 BACKUP_EXTENSION_LIST=".tar .tar.gz .tar.bz2 .tar.xz"
-for extension in $BACKUP_EXTENSION_LIST; do
-  BACKUP_FILE=$(ls -1 /storage/.restore/*${EXTENSION} 2>/dev/null | head -n 1)
-  [ -n "${BACKUP_FILE}" ] && break
+for extension in "${BACKUP_EXTENSION_LIST[@]}"; do
+  BACKUP_FILE=$(ls -1 /storage/.restore/*"$EXTENSION" 2>/dev/null | head -n 1)
+  [ "$BACKUP_FILE" != "" ] && break
 done
 
 if [ -f /storage/.please_resize_me ]; then
@@ -42,6 +42,6 @@ elif [ -f "$BACKUP_FILE" ]; then
   TARGET="backup-restore.target"
 fi
 
-if [ -n "$TARGET" ]; then
+if [ "$TARGET" != "" ]; then
   ln -sT "/usr/lib/systemd/system/$TARGET" "$EARLY_DIR/default.target" 2>/dev/kmsg || log "error creating symlink to $TARGET: $?"
 fi

@@ -8,7 +8,7 @@ SYS_CPUFREQ_GOV=$( cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor )
 SYS_ONDEMAND_DIR="/sys/devices/system/cpu/cpufreq/ondemand/"
 
 # Configure frequency scaling properties
-if [ "${SYS_CPUFREQ_GOV}" = "ondemand" ]; then
+if [ "$SYS_CPUFREQ_GOV" = "ondemand" ]; then
   echo 1 > "${SYS_ONDEMAND_DIR}/io_is_busy"
   echo 50 > "${SYS_ONDEMAND_DIR}/up_threshold"
   echo 100000 > "${SYS_ONDEMAND_DIR}/sampling_rate"

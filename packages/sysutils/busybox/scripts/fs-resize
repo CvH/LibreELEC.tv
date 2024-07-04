@@ -5,7 +5,7 @@
 
 StartProgressLog() {
   if [ "$1" = "spinner" ]; then
-    echo "*** $3" >>$LOG
+    echo "*** $3" >>"$LOG"
   fi
   StartProgress "$@"
 }
@@ -17,44 +17,44 @@ if [ -e /storage/.please_resize_me ] ; then
 
   mount -o remount,rw /flash
   LOG=/flash/fs-resize.log
-  date -Iseconds >>$LOG
+  date -Iseconds >>"$LOG"
 
   # this sh** was never intended to be used
   # on already installed and runing system
   if [ -d /storage/.kodi -o -d /storage/.config -o -d /storage/.cache ] ; then
     rm -f /storage/.please_resize_me
     sync
-    echo "Resizing is not permitted - the system has already been initialised." | tee -a $LOG
+    echo "Resizing is not permitted - the system has already been initialised." | tee -a "$LOG"
     mount -o remount,ro /flash
     StartProgress countdown "Rebooting in 15s... " 15 "NOW"
     reboot -f
   fi
 
   # get the disk. /storage on 2nd partition
-  echo $(grep "/storage " /proc/mounts) >>$LOG
+  echo "$(grep "/storage " /proc/mounts)" >>"$LOG"
   PART=$(grep "/storage " /proc/mounts | cut -d" " -f1 | grep '2$')
 
   # get disk: /dev/sdx2 -> /dev/sdx, /dev/mmcblkxp2 -> /dev/mmcblkx
   case $PART in
     "/dev/mmcblk"*|"/dev/nvme"*)
-      DISK=$(echo $PART | sed s/p2$//g)
+      DISK=$(echo "$PART" | sed s/p2$//g)
       ;;
     *)
-      DISK=$(echo $PART | sed s/2$//g)
+      DISK=$(echo "$PART" | sed s/2$//g)
       ;;
   esac
 
   rm -f /storage/.please_resize_me
   sync
 
-  LABEL=$(blkid -o value -s LABEL $PART)
-  UUID=$(blkid -o value -s UUID $PART)
+  LABEL=$(blkid -o value -s LABEL "$PART")
+  UUID=$(blkid -o value -s UUID "$PART")
 
-  echo "DISK: $DISK  PART: $PART  LABEL: $LABEL  UUID: $UUID" >>$LOG
+  echo "DISK: $DISK  PART: $PART  LABEL: $LABEL  UUID: $UUID" >>"$LOG"
 
   # just in case
   if [ ! -z "$DISK" -a ! -z "$PART" -a ! -z "$UUID" ] ; then
-    umount $PART
+    umount "$PART"
 
     echo "PARTITION RESIZING IN PROGRESS"
     echo ""

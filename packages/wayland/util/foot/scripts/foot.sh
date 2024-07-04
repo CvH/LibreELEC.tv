@@ -6,13 +6,13 @@ FOOT_CONFIG_DIR=/storage/.config/foot
 FOOT_CONFIG_DEFAULT=/usr/share/foot/foot.ini
 FOOT_LOG_FILE=/var/log/foot.log
 
-if [ ! -f ${FOOT_CONFIG_DIR}/foot.ini ]; then
-  mkdir -p ${FOOT_CONFIG_DIR}
-    cp ${FOOT_CONFIG_DEFAULT} ${FOOT_CONFIG_DIR}
+if [ ! -f "$FOOT_CONFIG_DIR"/foot.ini ]; then
+  mkdir -p "$FOOT_CONFIG_DIR"
+    cp "$FOOT_CONFIG_DEFAULT" "$FOOT_CONFIG_DIR"
 fi
 
-if [ -z "${LOCPATH}" ]; then
+if [ "$LOCPATH" = "" ]; then
   export LOCPATH="/storage/.cache/locpath"
 fi
 
-/usr/bin/foot > ${FOOT_LOG_FILE} 2>&1
+/usr/bin/foot > "$FOOT_LOG_FILE" 2>&1

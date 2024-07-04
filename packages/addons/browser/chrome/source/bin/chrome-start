@@ -8,18 +8,18 @@ oe_setup_addon browser.chrome
 
 # check if chrome is already successful installed
 if [ ! -f "$ADDON_DIR/extract.ok" ]; then
-  cd $ADDON_DIR
+  cd "$ADDON_DIR"
   chrome-downloader
 fi
 
-if [ -e $ADDON_HOME/env ]
+if [ -e "$ADDON_HOME"/env ]
 then
-  . $ADDON_HOME/env
+  . "$ADDON_HOME"/env
 fi
 
 # fix file permissons (zip packaging)
-chmod +x $ADDON_DIR/chrome-bin/chrome
-chmod 4755 $ADDON_DIR/chrome-bin/chrome-sandbox
+chmod +x "$ADDON_DIR"/chrome-bin/chrome
+chmod 4755 "$ADDON_DIR"/chrome-bin/chrome-sandbox
 
 # make sure we use "own" gtk/pango/nss/etc
 export LD_LIBRARY_PATH=$ADDON_DIR/lib.private
@@ -57,7 +57,7 @@ case $VAAPI_MODE in
   *)
       LIBGL_ALWAYS_SOFTWARE='1'
       export LIBGL_ALWAYS_SOFTWARE
-esac
+;; esac
 export LIBVA_DRIVER_NAME LIBVA_DRIVERS_PATH
 
 # windowed
@@ -76,7 +76,7 @@ esac
 if [ "$AUDIO_DEVICE_TYPE" == "ALSA" ]; then
   # stop pulseaudio when using an Alsa device
   systemctl stop pulseaudio
-  if [ ! -z $ALSA_DEVICE ]; then
+  if [ ! -z "$ALSA_DEVICE" ]; then
     chrome_OPTS="$chrome_OPTS --alsa-output-device=$ALSA_DEVICE"
   fi
 fi
@@ -93,18 +93,18 @@ if [ ! -z "$USER_AGENT" ]; then
 fi
 
 # start chrome
-LD_PRELOAD=/usr/lib/libGL.so $ADDON_DIR/chrome-bin/chrome \
-  $chrome_OPTS \
+LD_PRELOAD=/usr/lib/libGL.so "$ADDON_DIR"/chrome-bin/chrome \
+  "$chrome_OPTS" \
   "$USER_AGENT" \
   --no-sandbox \
-  --user-data-dir=$ADDON_HOME/profile \
-  --test-type $@ \
-  2>&1 | tee $ADDON_LOG_FILE
+  --user-data-dir="$ADDON_HOME"/profile \
+  --test-type "$@" \
+  2>&1 | tee "$ADDON_LOG_FILE"
 
 # kill unclutter
 if [ "$HIDE_CURSOR" == "true" ]
 then
-  kill $UNCLUTTER_PID
+  kill "$UNCLUTTER_PID"
 fi
 
 sleep 5

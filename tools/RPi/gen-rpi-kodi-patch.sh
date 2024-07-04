@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BIN=$(readlink -f $(dirname $0))
+BIN=$(readlink -f "$(dirname "$0")")
 
 if git rev-parse --is-inside-work-tree &>/dev/null; then
   echo "Don't run this script inside a git reppository!"
@@ -12,7 +12,7 @@ DEPTH=1000
 
 usage()
 {
-  local me="$(basename $0)"
+  local me="$(basename "$0")"
 
   echo "Usage:   ${me} <popcornmix-branch> <sha>|<xbmc branch>"
   echo
@@ -24,13 +24,13 @@ usage()
   exit 1
 }
 
-if [ -z "${1}" ]; then
+if [ "${1}" = "" ]; then
   echo "ERROR: popcornmix branch must be specified!"
   echo
   usage
 fi
 
-if [ -z "${2}" ]; then
+if [ "${2}" = "" ]; then
   echo "ERROR: First popcornmix revision (sha) or name of xbmc branch must be specified!"
   echo
   usage
@@ -46,29 +46,29 @@ if [ -d raspberrypi-kodi.stash ]; then
   echo "Copying raspberrypi-kodi.stash raspberrypi-kodi..."
   cp -r raspberrypi-kodi.stash raspberrypi-kodi
   cd raspberrypi-kodi
-  git checkout ${BRANCH}
+  git checkout "$BRANCH"
 else
-  git clone -b ${BRANCH} --depth=${DEPTH} --single-branch https://github.com/popcornmix/xbmc.git raspberrypi-kodi
+  git clone -b "$BRANCH" --depth="$DEPTH" --single-branch https://github.com/popcornmix/xbmc.git raspberrypi-kodi
   cd raspberrypi-kodi
 fi
 
 if [[ ${BASEREV} =~ [0-9a-f]{40} ]]; then
   BASEREV="${BASEREV}~1"
 else
-  git remote add -t ${BASEREV} xbmc https://github.com/xbmc/xbmc.git
+  git remote add -t "$BASEREV" xbmc https://github.com/xbmc/xbmc.git
   BASEREV="xbmc/${BASEREV}"
 fi
 
 # Apply the following config change to reduce chance of duplicate hashes
 git config --local core.abbrev 40
 
-git fetch --all --depth=${DEPTH}
-git reset --hard origin/${BRANCH}
+git fetch --all --depth="$DEPTH"
+git reset --hard origin/"$BRANCH"
 
 TOPREV="$(git log --oneline --grep "UNSTABLE: This is a placeholder. Commits after this point are considered experimental." | awk '{print $1}')"
-if [ -n "${TOPREV}" ]; then
+if [ "$TOPREV" != "" ]; then
   echo "Found UNSTABLE placeholder with rev ${TOPREV}, making this the new HEAD"
-  git reset --hard ${TOPREV}
+  git reset --hard "$TOPREV"
 else
   echo "WARNING: UNSTABLE placeholder not found, assuming it is not present in branch ${BRANCH}"
 fi
@@ -81,8 +81,8 @@ else
   SKIN2=kodi-theme-Estuary
 fi
 
-GIT_SEQUENCE_EDITOR=${BIN}/rpi-kodi-rebase.sh git rebase -i ${BASEREV}
-git format-patch --no-signature --stdout ${BASEREV} >/tmp/kodi.patch
+GIT_SEQUENCE_EDITOR=${BIN}/rpi-kodi-rebase.sh git rebase -i "$BASEREV"
+git format-patch --no-signature --stdout "$BASEREV" >/tmp/kodi.patch
 
 cd .. && rm -fr raspberrypi-kodi
 

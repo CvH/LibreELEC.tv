@@ -11,23 +11,23 @@ package_worker() {
 
   export MTJOBID=${slot} PARALLEL_SEQ=${job} MTMAXJOBS=${jobs} MTMAXSLOT=${maxslot}
 
-  . config/options "${pkgname}"
+  . config/options "$pkgname"
 
-  if [ -z "${oseqinfo}" ]; then
-    ${SCRIPTS}/${task} ${pkgname} 2>&1 && result=0 || result=1
+  if [ "$oseqinfo" = "" ]; then
+    "$SCRIPTS/$task" "$pkgname" 2>&1 && result=0 || result=1
   else
     print_color CLR_ERROR "FAILURE [${task} ${pkgname}]: a previous dependency process has already failed!"
     echo
     echo
 
     num=0
-    for failed_items in ${oseqinfo//;/ }; do
+    for failed_items in "${oseqinfo//;/ }"; do
       num=$((num + 1))
       read -r ftask fpkgname fseq <<< "${failed_items//,/ }"
 
-      if [ -n "${fseq}" ]; then
-        [ ${num} -eq 1 ] && echo "The following log(s) for already failed dependencies are available:"
-        printf "  %-7s %s => %s\n" "${ftask}" "${fpkgname}" "${THREAD_CONTROL}/logs/${fseq}.log"
+      if [ "$fseq" != "" ]; then
+        [ "$num" -eq 1 ] && echo "The following log(s) for already failed dependencies are available:"
+        printf "  %-7s %s => %s\n" "$ftask" "$fpkgname" "${THREAD_CONTROL}/logs/${fseq}.log"
       else
         print_color CLR_ERROR "ALREADY FAILED [${ftask} ${fpkg}]"
         echo
@@ -37,43 +37,43 @@ package_worker() {
     result=1
   fi
 
-  [[ ${pkgname} =~ :target$ || "${pkgname//:/}" = "${pkgname}" ]] && istarget="yes" || istarget="no"
+  [[ ${pkgname} =~ :target$ || "${pkgname//:/}" = "$pkgname" ]] && istarget="yes" || istarget="no"
 
-  [[ "${MTADDONBUILD}" = "yes" && ( "${PKG_IS_ADDON}" = "yes" || "${PKG_IS_ADDON}" = "embedded" ) ]] && isaddon="yes" || isaddon="no"
+  [[ "$MTADDONBUILD" = "yes" && ( "$PKG_IS_ADDON" = "yes" || "$PKG_IS_ADDON" = "embedded" ) ]] && isaddon="yes" || isaddon="no"
 
-  if [ "${isaddon}" = "yes" -a "${istarget}" = "yes" ]; then
-    if [ ${result} -eq 0 ]; then
-      ${SCRIPTS}/install_addon ${pkgname} 2>&1 && result=0 || result=1
+  if [ "$isaddon" = "yes" -a "$istarget" = "yes" ]; then
+    if [ "$result" -eq 0 ]; then
+      "$SCRIPTS"/install_addon "$pkgname" 2>&1 && result=0 || result=1
     fi
 
-    if [ ${result} -ne 0 ]; then
+    if [ "$result" -ne 0 ]; then
       if [ -d "${THREAD_CONTROL}/logs" ]; then
         echo "${PKG_NAME} ${THREAD_CONTROL}/logs/${job}.log" >>"${THREAD_CONTROL}/addons.failed"
       else
-        echo "${PKG_NAME}" >>"${THREAD_CONTROL}/addons.failed"
+        echo "$PKG_NAME" >>"${THREAD_CONTROL}/addons.failed"
       fi
     fi
   fi
 
   (
     flock --exclusive 95
-    [ ${result} -eq 0 ] && status="DONE" || status="FAIL"
+    [ "$result" -eq 0 ] && status="DONE" || status="FAIL"
     num=$(< "${THREAD_CONTROL}/progress")
     mv "${THREAD_CONTROL}/progress" "${THREAD_CONTROL}/progress.prev"
     num=$((num + 1))
-    echo ${num} >"${THREAD_CONTROL}/progress"
+    echo "$num" >"${THREAD_CONTROL}/progress"
   ) 95>"${THREAD_CONTROL}/locks/.progress"
 
-  if [ ${result} -eq 0 ]; then
+  if [ "$result" -eq 0 ]; then
     pkg_lock_status "IDLE"
   else
-    pkg_lock_status "FAILED" "${pkgname}" "${task}"
+    pkg_lock_status "FAILED" "$pkgname" "$task"
 
     print_color CLR_ERROR "FAILURE: $SCRIPTS/${task} ${pkgname} has failed!"
     echo
   fi
 
-  return ${result}
+  return "$result"
 }
 
 package_worker "$1" "$2" "$3" "$4" "$5" "$6" "$7"

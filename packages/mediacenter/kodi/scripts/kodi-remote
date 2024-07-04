@@ -48,5 +48,5 @@ while true; do
     $'\177') com "Back";;
     "") com "Select";;
     q) exit
-  esac
+  ;; esac
 done

@@ -23,7 +23,7 @@ killall -9 mediasrv &>/dev/null
 
 # remove the entry
 BUILD_DATE="#"
-sed -i "s|\(id=\"BUILD_DATE\" .* values=\)\"[^\"]*\"|\1\"$BUILD_DATE\"|" $SUNDTEK_ADDON_DIR/resources/settings.xml
+sed -i "s|\(id=\"BUILD_DATE\" .* values=\)\"[^\"]*\"|\1\"$BUILD_DATE\"|" "$SUNDTEK_ADDON_DIR"/resources/settings.xml
 
 # exit on errors
 set -e
@@ -64,7 +64,7 @@ fi
 
 logger -t Sundtek "### Downloading driver archive for $ARCH ###"
 kodi-send -a "Notification(Sundtek, Downloading driver archive for $ARCH, 3000, $SUNDTEK_ADDON_DIR/icon.png)"
-wget -O installer.tar.gz $INSTALLER_URL
+wget -O installer.tar.gz "$INSTALLER_URL"
 if [ $? -ne 0 ]; then
   logger -t Sundtek "### Archive damaged ###"
   kodi-send -a "Notification(Sundtek, Download failed, 8000, $SUNDTEK_ADDON_DIR/icon.png)"

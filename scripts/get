@@ -5,10 +5,10 @@
 
 . config/options "${1}"
 
-if [ -z "${1}" ]; then
-  for i in $(find "${PACKAGES}/" -type f -name "package.mk"); do
-    GET_PKG=$(grep "^PKG_NAME=" "${i}" | sed -e "s,\",,g" -e "s,PKG_NAME=,,")
-    "${SCRIPTS}"/get "${GET_PKG}"
+if [ "${1}" = "" ]; then
+  for i in "$(find "${PACKAGES}/" -type f -name "package.mk")"; do
+    GET_PKG=$(grep "^PKG_NAME=" "$i" | sed -e "s,\",,g" -e "s,PKG_NAME=,,")
+    "$SCRIPTS"/get "$GET_PKG"
   done
 fi
 
@@ -21,7 +21,7 @@ lock_source_dir() {
   fi
 }
 
-if [ -n "${PKG_URL}" -a -n "${PKG_SOURCE_NAME}" ]; then
+if [ "$PKG_URL" != "" -a -n "$PKG_SOURCE_NAME" ]; then
   mkdir -p "${SOURCES}/${1}"
 
   PACKAGE="${SOURCES}/${1}/${PKG_SOURCE_NAME}"
@@ -30,7 +30,7 @@ if [ -n "${PKG_URL}" -a -n "${PKG_SOURCE_NAME}" ]; then
   STAMP_SHA="${PACKAGE}.sha256"
 
   # determine get handler based on protocol and/or filename
-  case "${PKG_URL}" in
+  case "$PKG_URL" in
     git://*|*.git)
       get_handler="git";;
     file://*)
@@ -39,15 +39,15 @@ if [ -n "${PKG_URL}" -a -n "${PKG_SOURCE_NAME}" ]; then
       get_handler="archive";;
   esac
 
-  if ! listcontains "${GET_HANDLER_SUPPORT}" "${get_handler}"; then
+  if ! listcontains "$GET_HANDLER_SUPPORT" "$get_handler"; then
     die "ERROR: get handler \"${get_handler}\" is not supported, unable to get package ${1} - aborting!"
   else
     get_handler="${SCRIPTS}/get_${get_handler}"
-    if [ ! -f "${get_handler}" ]; then
+    if [ ! -f "$get_handler" ]; then
       die "ERROR: get handler \"${get_handler}\" does not exist, unable to get package ${1} - aborting!"
     fi
 
-    . "${get_handler}"
+    . "$get_handler"
   fi
 fi
 

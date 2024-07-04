@@ -41,7 +41,7 @@ EXAMPLE
        build all, but not binary
        > ./script/create_addon all -binary
 EOF
-  exit ${1:-0}
+  exit "${1:-0}"
 }
 
 # Get list of addon packages
@@ -59,37 +59,37 @@ get_addons() {
 
   exit() { exited=1; }
 
-  for pkgpath in $(cat "${_CACHE_PACKAGE_LOCAL}" "${_CACHE_PACKAGE_GLOBAL}" | grep -E "${paths}"); do
-    if [ -n "${filter}" ]; then
+  for pkgpath in "$(cat "$_CACHE_PACKAGE_LOCAL" "$_CACHE_PACKAGE_GLOBAL" | grep -E "$paths")"; do
+    if [ "$filter" != "" ]; then
       [[ ${pkgpath} =~ ^.*/${filter}@?+?@ ]] || continue
     fi
 
     exited=0
     source_package "${pkgpath%%@*}/package.mk" &>/dev/null
-    [ ${exited} -eq 1 ] && continue
+    [ "$exited" -eq 1 ] && continue
 
     validpkg="no"
     VERIFY_FAIL=
     # Should only build embedded addons when they are explictly specified in the addon list
-    if [ "${PKG_IS_ADDON}" = "embedded" ]; then
-      if [ -n "${filter}" ]; then
+    if [ "$PKG_IS_ADDON" = "embedded" ]; then
+      if [ "$filter" != "" ]; then
         verify_addon && validpkg="yes"
       fi
-    elif [ "${PKG_IS_ADDON}" = "yes" ]; then
+    elif [ "$PKG_IS_ADDON" = "yes" ]; then
       verify_addon && validpkg="yes"
     fi
 
-    if [ "${validpkg}" = "yes" ]; then
-      echo "${PKG_NAME}"
+    if [ "$validpkg" = "yes" ]; then
+      echo "$PKG_NAME"
       count=$((count + 1))
-    elif [ -n "${VERIFY_FAIL}" -a -n "${filter}" ]; then
-      echo "$(print_color CLR_ERROR "${PKG_NAME}"): ${VERIFY_FAIL}" >&2
+    elif [ "$VERIFY_FAIL" != "" -a -n "$filter" ]; then
+      echo "$(print_color CLR_ERROR "$PKG_NAME"): ${VERIFY_FAIL}" >&2
     fi
   done
 
   unset -f exit
 
-  if [ ${count} -eq 0 -a -n "${filter}" ]; then
+  if [ "$count" -eq 0 -a -n "$filter" ]; then
     echo  "$(print_color CLR_ERROR "ERROR: no addons matched for filter ${filter}")" >&2
     echo  "For more information type: ./scripts/create_addon --help" >&2
     die
@@ -98,25 +98,25 @@ get_addons() {
 
 # Return 0 if package is a suitable addon, 1 otherwise
 verify_addon() {
-  if [ -n "${PKG_ARCH}" ]; then
+  if [ "$PKG_ARCH" != "" ]; then
     VERIFY_FAIL="Incompatible arch: \"${TARGET_ARCH}\" not in [ ${PKG_ARCH} ]"
-    listcontains "${PKG_ARCH}" "!${TARGET_ARCH}" && return 1
-    listcontains "${PKG_ARCH}" "${TARGET_ARCH}" || listcontains "${PKG_ARCH}" "any" || return 1
+    listcontains "$PKG_ARCH" "!${TARGET_ARCH}" && return 1
+    listcontains "$PKG_ARCH" "$TARGET_ARCH" || listcontains "$PKG_ARCH" "any" || return 1
   fi
 
-  if [ -n "${PKG_ADDON_PROJECTS}" ]; then
-    [ "${DEVICE}" = "RPi" ] && _DEVICE="RPi1" || _DEVICE="${DEVICE}"
+  if [ "$PKG_ADDON_PROJECTS" != "" ]; then
+    [ "$DEVICE" = "RPi" ] && _DEVICE="RPi1" || _DEVICE="$DEVICE"
 
     VERIFY_FAIL="Incompatible project or device: \"${_DEVICE:-${PROJECT}}\" not in [ ${PKG_ADDON_PROJECTS} ]"
 
-    if listcontains "${PKG_ADDON_PROJECTS}" "!${_DEVICE:-${PROJECT}}" ||
-       listcontains "${PKG_ADDON_PROJECTS}" "!${PROJECT}"; then
+    if listcontains "$PKG_ADDON_PROJECTS" "!${_DEVICE:-${PROJECT}}" ||
+       listcontains "$PKG_ADDON_PROJECTS" "!${PROJECT}"; then
       return 1
     fi
 
-    if ! listcontains "${PKG_ADDON_PROJECTS}" "${_DEVICE:-${PROJECT}}" &&
-       ! listcontains "${PKG_ADDON_PROJECTS}" "${PROJECT}" &&
-       ! listcontains "${PKG_ADDON_PROJECTS}" "any"; then
+    if ! listcontains "$PKG_ADDON_PROJECTS" "${_DEVICE:-${PROJECT}}" &&
+       ! listcontains "$PKG_ADDON_PROJECTS" "$PROJECT" &&
+       ! listcontains "$PKG_ADDON_PROJECTS" "any"; then
       return 1
     fi
   fi
@@ -130,7 +130,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # check environment and configure toolchains
-${SCRIPTS}/checkdeps
+"$SCRIPTS"/checkdeps
 
 ( setup_toolchain host )
 setup_toolchain target
@@ -146,21 +146,21 @@ while [ $# -gt 0 ]; do
     --help)         usage 0;;
     --show-only)    show_only="yes";;
     --*)            usage 1;;
-    -*)             addons_drop+=" $(get_addons ${1:1})";;
-    *)              addons+=" $(get_addons ${1})";;
+    -*)             addons_drop+=" $(get_addons "${1:1}")";;
+    *)              addons+=" $(get_addons "${1}")";;
   esac
   shift
 done
 
 # Build a new list containing only those addons we want to build
 wanted_addons=
-for addon in $(echo ${addons} | tr ' ' '\n' | sort -u); do
-  listcontains "${addons_drop}" "${addon}" || wanted_addons+=" ${addon}"
+for addon in "$(echo "$addons" | tr ' ' '\n' | sort -u)"; do
+  listcontains "$addons_drop" "$addon" || wanted_addons+=" ${addon}"
 done
 
-if [ "${show_only}" = "yes" ]; then
-  for addon in ${wanted_addons}; do
-    echo ${addon}
+if [ "$show_only" = "yes" ]; then
+  for addon in "$wanted_addons"; do
+    echo "$addon"
   done
   exit 0
 fi
@@ -174,11 +174,11 @@ elif [ -f "${THREAD_CONTROL}/addons.failed" ]; then
   echo >&2
   print_color CLR_ERROR "FAILED ADDONS:\n" >&2
   while read -r addon logfile; do
-    if [ -n "${addon}" ]; then
-      if [ -n "${logfile}" ]; then
-        echo "    $(print_color CLR_ERROR "${addon}"): ${logfile}" >&2
+    if [ "$addon" != "" ]; then
+      if [ "$logfile" != "" ]; then
+        echo "    $(print_color CLR_ERROR "$addon"): ${logfile}" >&2
       else
-        echo "    $(print_color CLR_ERROR "${addon}")" >&2
+        echo "    $(print_color CLR_ERROR "$addon")" >&2
       fi
     fi
   done < "${THREAD_CONTROL}/addons.failed"

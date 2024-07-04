@@ -12,18 +12,18 @@ BOOT=$(grep /flash /proc/mounts | awk '{print $1}' | sed 's/p[012]//g')
 DISK=""
 
 for TYPE in /sys/class/block/mmcblk*/device/type; do
-  if grep -q "MMC" "${TYPE}"; then
-    DISK="/dev/$(echo "${TYPE}" | awk -F/ '{print $5}')"
+  if grep -q "MMC" "$TYPE"; then
+    DISK="/dev/$(echo "$TYPE" | awk -F/ '{print $5}')"
     break
   fi
 done
 
-if [ -z "${DISK}" ]; then
+if [ "$DISK" = "" ]; then
   echo "Can't find eMMC module!"
   exit 1
 fi
 
-if [ "${BOOT}" = "${DISK}" ]; then
+if [ "$BOOT" = "$DISK" ]; then
   echo "Your device is booted from the eMMC module!"
   exit 1
 fi
@@ -36,7 +36,7 @@ echo ""
 echo "eMMC found at ${DISK}"
 echo ""
 
-if [ ! -b "${DISK}" ]; then
+if [ ! -b "$DISK" ]; then
     echo "Error: eMMC not found."
     exit 1
 fi
@@ -45,49 +45,49 @@ echo ""
 echo -n "WARNING: ALL DATA ON eMMC WILL BE ERASED! Continue (y/N)?  "
 read -n 1 ANSWER
 
-if [ ! "${ANSWER}" = "y" ]; then
+if [ ! "$ANSWER" = "y" ]; then
   echo ""
   echo "Aborting..."
   exit 0
 fi
 echo ""
 
-umount ${DISK}* > /dev/null 2>&1
+umount "$DISK"* > /dev/null 2>&1
 
 echo "Erasing eMMC ..."
-dd if=/dev/zero of="${DISK}" bs=1M count=1 conv=fsync > /dev/null 2>&1
+dd if=/dev/zero of="$DISK" bs=1M count=1 conv=fsync > /dev/null 2>&1
 
 echo "Creating partitions"
-parted -s "${DISK}" mklabel msdos
-parted -s "${DISK}" -a optimal mkpart primary fat32 0% ${SYSTEM_SIZE}MiB
-parted -s "${DISK}" set 1 boot on
-parted -s "${DISK}" -a optimal mkpart primary ext4 ${SYSTEM_SIZE}MiB 100%
+parted -s "$DISK" mklabel msdos
+parted -s "$DISK" -a optimal mkpart primary fat32 0% "${SYSTEM_SIZE}"MiB
+parted -s "$DISK" set 1 boot on
+parted -s "$DISK" -a optimal mkpart primary ext4 "${SYSTEM_SIZE}"MiB 100%
 sync
 
 echo "Creating filesystems"
 dd if=/dev/zero of="${DISK}p1" bs=1M count=1 conv=fsync > /dev/null 2>&1
-mkfs.vfat -n SYSTEM -i ${UUID_SYSTEM//-/} ${DISK}p1 > /dev/null 2>&1
+mkfs.vfat -n SYSTEM -i "${UUID_SYSTEM//-/}" "${DISK}"p1 > /dev/null 2>&1
 dd if=/dev/zero of="${DISK}p2" bs=1M count=1 conv=fsync > /dev/null 2>&1
-mkfs.ext4 -L STORAGE -U ${UUID_STORAGE} ${DISK}p2 > /dev/null 2>&1
+mkfs.ext4 -L STORAGE -U "$UUID_STORAGE" "${DISK}"p2 > /dev/null 2>&1
 sync
 
 echo "Installing bootloader"
-dd if="${BOOT}" skip=8 of="${DISK}" bs=1k seek=8 count=768 conv=fsync > /dev/null 2>&1
+dd if="$BOOT" skip=8 of="$DISK" bs=1k seek=8 count=768 conv=fsync > /dev/null 2>&1
 
 echo "Copying system files"
 
-mkdir -p ${TMP}
+mkdir -p "$TMP"
 
-mount -t vfat ${DISK}p1 ${TMP}
+mount -t vfat "${DISK}"p1 "$TMP"
 
-cp -R /flash/. ${TMP}/
+cp -R /flash/. "$TMP"/
 sync
 
 echo "Adjusting partition UUIDs"
 
-sed -i "s/boot=UUID=[0-9a-f\-]*/boot=UUID=${UUID_SYSTEM}/g" ${TMP}/extlinux/extlinux.conf
-sed -i "s/disk=UUID=[0-9a-f\-]*/disk=UUID=${UUID_STORAGE}/g" ${TMP}/extlinux/extlinux.conf
+sed -i "s/boot=UUID=[0-9a-f\-]*/boot=UUID=${UUID_SYSTEM}/g" "$TMP"/extlinux/extlinux.conf
+sed -i "s/disk=UUID=[0-9a-f\-]*/disk=UUID=${UUID_STORAGE}/g" "$TMP"/extlinux/extlinux.conf
 
-umount ${TMP}
+umount "$TMP"
 
 echo "Done"

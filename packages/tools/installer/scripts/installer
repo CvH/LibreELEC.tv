@@ -34,11 +34,11 @@ trap '' 2
 dbglg() {
   # Acts just like echo cmd, with automatic redirection
 
-  echo "" >> $LOGFILE
-  echo "#################################################################" >> $LOGFILE
-  echo "# $@" >> $LOGFILE
-  echo "#################################################################" >> $LOGFILE
-  echo "" >> $LOGFILE
+  echo "" >> "$LOGFILE"
+  echo "#################################################################" >> "$LOGFILE"
+  echo "# $@" >> "$LOGFILE"
+  echo "#################################################################" >> "$LOGFILE"
+  echo "" >> "$LOGFILE"
 }
 
 log_system_status() {
@@ -80,16 +80,16 @@ get_device_unmount() {
   DEVICES=""
   DEVICES=$(parted -s -m -l 2>/dev/null | grep -E '^/dev/sd|^/dev/mmcblk|^/dev/nvme' | grep -E -v '^[^:]*rpmb|^[^:]*boot' | cut -f1 -d ":")
 
-  for i in $(cat /proc/mounts | grep -E '^/dev/sd' | cut -f1 -d " " | sed "s/[0-9].*$//"); do
-    DEVICES=$(echo $DEVICES | sed -e "s|$i||")
+  for i in "$(cat /proc/mounts | grep -E '^/dev/sd' | cut -f1 -d " " | sed "s/[0-9].*$//")"; do
+    DEVICES=$(echo "$DEVICES" | sed -e "s|$i||")
   done
 
-  for i in $(cat /proc/mounts | grep -E '^/dev/mmcblk' | cut -f1 -d " " | sed "s/p.*$//"); do
-    DEVICES=$(echo $DEVICES | sed -e "s|$i||")
+  for i in "$(cat /proc/mounts | grep -E '^/dev/mmcblk' | cut -f1 -d " " | sed "s/p.*$//")"; do
+    DEVICES=$(echo "$DEVICES" | sed -e "s|$i||")
   done
 
-  for i in $(cat /proc/mounts | grep -E '^/dev/nvme' | cut -f1 -d " " | sed "s/p.*$//"); do
-    DEVICES=$(echo $DEVICES | sed -e "s|$i||")
+  for i in "$(cat /proc/mounts | grep -E '^/dev/nvme' | cut -f1 -d " " | sed "s/p.*$//")"; do
+    DEVICES=$(echo "$DEVICES" | sed -e "s|$i||")
   done
 }
 
@@ -99,7 +99,7 @@ get_partition() {
   # uses:     -
   # provides: PARTITIONS
 
-  PARTITIONS=$(parted -s -m $1 print | grep -v ^/dev | grep -v BYT | cut -f1 -d ":")
+  PARTITIONS=$(parted -s -m "$1" print | grep -v ^/dev | grep -v BYT | cut -f1 -d ":")
 }
 
 create_device_list() {
@@ -121,10 +121,10 @@ create_device_list() {
     return 1
   fi
 
-  for i in $DEVICES; do
-    DEVICE_MODEL=$(parted -s $i -m print | grep ^$i | cut -f7 -d ":" | sed "s/;//")
-    DEVICE_SIZE=$(parted -s $i -m print | grep ^$i | cut -f2 -d ":")
-    DEVICE_NAME=$(echo $DEVICE_MODEL ${DEVICE_SIZE} | sed 's/ /_/g')
+  for i in "${DEVICES[@]}"; do
+    DEVICE_MODEL=$(parted -s "$i" -m print | grep ^"$i" | cut -f7 -d ":" | sed "s/;//")
+    DEVICE_SIZE=$(parted -s "$i" -m print | grep ^"$i" | cut -f2 -d ":")
+    DEVICE_NAME=$(echo "$DEVICE_MODEL" "$DEVICE_SIZE" | sed 's/ /_/g')
     DEVICE_LIST="$DEVICE_LIST $i $DEVICE_NAME"
   done
   return 0
@@ -139,13 +139,13 @@ do_install_quick() {
   create_device_list || return
 
   whiptail --backtitle "$BACKTITLE" --cancel-button "$MSG_CANCEL" \
-    $DIALOG_OPTIONS --title "$MSG_TITLE" --menu "$MSG_MENU" 20 50 5 \
-    $DEVICE_LIST 2> $TMPDIR/device_for_install
+    "$DIALOG_OPTIONS" --title "$MSG_TITLE" --menu "$MSG_MENU" 20 50 5 \
+    "$DEVICE_LIST" 2> "$TMPDIR"/device_for_install
   [ $? -ne 0 ] && return
 
   # now we must do everything
   INSTALL_DEVICE=$(cat "$TMPDIR/device_for_install")
-  INSTALL_DEVICE_FULL=$(echo $DEVICE_LIST | sed "s|.*$INSTALL_DEVICE \([^ ]*\).*|$INSTALL_DEVICE \1|")
+  INSTALL_DEVICE_FULL=$(echo "$DEVICE_LIST" | sed "s|.*$INSTALL_DEVICE \([^ ]*\).*|$INSTALL_DEVICE \1|")
 
   case $INSTALL_DEVICE in
     "/dev/mmcblk"*|"/dev/nvme"*)
@@ -166,38 +166,38 @@ do_install_quick() {
   MSG_DETAIL="\nIf you continue the contents of the target disk will be wiped out:\n\n$INSTALL_DEVICE_FULL\n\n"
   DIALOG_OPTIONS="--defaultno"
   whiptail --backtitle "$BACKTITLE" --title "$MSG_TITLE" \
-    $DIALOG_OPTIONS --yesno "$MSG_DETAIL" 0 0
+    "$DIALOG_OPTIONS" --yesno "$MSG_DETAIL" 0 0
   [ $? -ne 0 ] && return
 
   MSG_TITLE="Confirmation before installing"
   MSG_DETAIL="\nThis is last chance to abort the installation!\n\nIf you continue the target disk will be wiped out:\n\n$INSTALL_DEVICE_FULL\n\n\n"
   DIALOG_OPTIONS="--defaultno"
   whiptail --backtitle "$BACKTITLE" --title "$MSG_TITLE" \
-    $DIALOG_OPTIONS --yesno "$MSG_DETAIL" 0 0
+    "$DIALOG_OPTIONS" --yesno "$MSG_DETAIL" 0 0
   [ $? -ne 0 ] && return
 
   # start the progress bar (whiptail --gauge)
   {
     # remove all partitions
     msg_progress_install "1" "Get all partitions $INSTALL_DEVICE"
-    get_partition $INSTALL_DEVICE 2>>$LOGFILE
+    get_partition "$INSTALL_DEVICE" 2>>"$LOGFILE"
 
     msg_progress_install "5" "Wiping disk $INSTALL_DEVICE"
-    dd if=/dev/zero of=$INSTALL_DEVICE bs=4096 count=1024 2>>$LOGFILE
+    dd if=/dev/zero of="$INSTALL_DEVICE" bs=4096 count=1024 2>>"$LOGFILE"
 
     # create 2 new partitions (first $PARTSIZE_SYSTEM, second rest)
     msg_progress_install "7"  "Creating label on $INSTALL_DEVICE"
     if [ "$GPT" = "1" ]; then
-      parted -s $INSTALL_DEVICE mklabel gpt >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" mklabel gpt >> "$LOGFILE" 2>&1
     else
-      parted -s $INSTALL_DEVICE mklabel msdos >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" mklabel msdos >> "$LOGFILE" 2>&1
     fi
 
     msg_progress_install "9" "Writing Master Boot Record on $INSTALL_DEVICE"
     if [ "$GPT" = "1" ]; then
-      cat /usr/share/syslinux/gptmbr.bin > $INSTALL_DEVICE
+      cat /usr/share/syslinux/gptmbr.bin > "$INSTALL_DEVICE"
     else
-      cat /usr/share/syslinux/mbr.bin > $INSTALL_DEVICE
+      cat /usr/share/syslinux/mbr.bin > "$INSTALL_DEVICE"
     fi
 
     partsize_system_start=$PARTSIZE_SYSTEM_OFFSET
@@ -207,69 +207,69 @@ do_install_quick() {
 
     msg_progress_install "10" "Creating partition on $INSTALL_DEVICE"
     if [ "$GPT" = "1" ]; then
-      parted -s $INSTALL_DEVICE unit s mkpart $DISKLABEL_SYSTEM fat16 -- $partsize_system_start $partsize_system_end >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" unit s mkpart "$DISKLABEL_SYSTEM" fat16 -- "$partsize_system_start" "$partsize_system_end" >> "$LOGFILE" 2>&1
     else
-      parted -s $INSTALL_DEVICE unit s mkpart primary fat16 -- $partsize_system_start $partsize_system_end >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" unit s mkpart primary fat16 -- "$partsize_system_start" "$partsize_system_end" >> "$LOGFILE" 2>&1
     fi
 
     msg_progress_install "13" "Creating partition on $INSTALL_DEVICE"
     if [ "$GPT" = "1" ]; then
-      parted -s $INSTALL_DEVICE unit s mkpart $DISKLABEL_STORAGE ext4 -- $partsize_storage_start $partsize_storage_end >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" unit s mkpart "$DISKLABEL_STORAGE" ext4 -- "$partsize_storage_start" "$partsize_storage_end" >> "$LOGFILE" 2>&1
     else
-      parted -s $INSTALL_DEVICE unit s mkpart primary ext4 -- $partsize_storage_start $partsize_storage_end >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" unit s mkpart primary ext4 -- "$partsize_storage_start" "$partsize_storage_end" >> "$LOGFILE" 2>&1
     fi
 
     msg_progress_install "16" "Setup bootflag on partition 1 of $INSTALL_DEVICE"
-    parted -s $INSTALL_DEVICE set 1 boot on >> $LOGFILE 2>&1
+    parted -s "$INSTALL_DEVICE" set 1 boot on >> "$LOGFILE" 2>&1
     if [ "$GPT" = "1" ]; then
-      parted -s $INSTALL_DEVICE set 1 legacy_boot on >> $LOGFILE 2>&1
+      parted -s "$INSTALL_DEVICE" set 1 legacy_boot on >> "$LOGFILE" 2>&1
     fi
 
     msg_progress_install "20" "Tell the kernel we have a new partition table on $INSTALL_DEVICE"
-    partprobe $INSTALL_DEVICE >> $LOGFILE 2>&1
+    partprobe "$INSTALL_DEVICE" >> "$LOGFILE" 2>&1
 
     # create filesystem
     msg_progress_install "23" "Creating filesystem on ${INSTALL_DEVICE}1"
-    mkfs.vfat -F 16 ${INSTALL_DEVICE}${PART1} >> $LOGFILE 2>&1
+    mkfs.vfat -F 16 "$INSTALL_DEVICE$PART1" >> "$LOGFILE" 2>&1
 
     msg_progress_install "25" "Set uuid and disklabel $DISKLABEL_SYSTEM on ${INSTALL_DEVICE}${PART1}"
-    dosfslabel ${INSTALL_DEVICE}${PART1}  $DISKLABEL_SYSTEM >> $LOGFILE 2>&1
+    dosfslabel "$INSTALL_DEVICE$PART1"  "$DISKLABEL_SYSTEM" >> "$LOGFILE" 2>&1
 
     msg_progress_install "28" "Creating filesystem on ${INSTALL_DEVICE}${PART2}"
-    mke2fs -t ext4 -m 0 ${INSTALL_DEVICE}${PART2} >> $LOGFILE 2>&1
+    mke2fs -t ext4 -m 0 "$INSTALL_DEVICE$PART2" >> "$LOGFILE" 2>&1
 
     msg_progress_install "30" "Set uuid and disklabel $DISKLABEL_STORAGE on ${INSTALL_DEVICE}${PART2}"
-    tune2fs -U random -L $DISKLABEL_STORAGE  ${INSTALL_DEVICE}${PART2} >> $LOGFILE 2>&1
+    tune2fs -U random -L "$DISKLABEL_STORAGE"  "$INSTALL_DEVICE$PART2" >> "$LOGFILE" 2>&1
 
-    UUID_SYSTEM="$(blkid --output udev ${INSTALL_DEVICE}${PART1} | grep ^ID_FS_UUID= | cut -d= -f2)"
-    UUID_STORAGE="$(blkid --output udev ${INSTALL_DEVICE}${PART2} | grep ^ID_FS_UUID= | cut -d= -f2)"
+    UUID_SYSTEM="$(blkid --output udev "$INSTALL_DEVICE$PART1" | grep ^ID_FS_UUID= | cut -d= -f2)"
+    UUID_STORAGE="$(blkid --output udev "$INSTALL_DEVICE$PART2" | grep ^ID_FS_UUID= | cut -d= -f2)"
 
-    echo "" >> $LOGFILE
-    echo "UUID_SYSTEM : ${UUID_SYSTEM}" >> $LOGFILE
-    echo "UUID_STORAGE: ${UUID_STORAGE}" >> $LOGFILE
+    echo "" >> "$LOGFILE"
+    echo "UUID_SYSTEM : ${UUID_SYSTEM}" >> "$LOGFILE"
+    echo "UUID_STORAGE: ${UUID_STORAGE}" >> "$LOGFILE"
 
     # mount system partition
     msg_progress_install "35" "Creating $TMPDIR/part1"
-    mkdir -p $TMPDIR/part1 >> $LOGFILE 2>&1
+    mkdir -p "$TMPDIR"/part1 >> "$LOGFILE" 2>&1
 
     msg_progress_install "40" "Mounting ${INSTALL_DEVICE}${PART1} to $TMPDIR/part1"
-    mount -t vfat ${INSTALL_DEVICE}${PART1} $TMPDIR/part1 >> $LOGFILE 2>&1
+    mount -t vfat "$INSTALL_DEVICE$PART1" "$TMPDIR"/part1 >> "$LOGFILE" 2>&1
 
     # installing syslinux
     msg_progress_install "50" "Installing syslinux to $TMPDIR/part1"
-    syslinux -i ${INSTALL_DEVICE}${PART1} >> $LOGFILE 2>&1
+    syslinux -i "$INSTALL_DEVICE$PART1" >> "$LOGFILE" 2>&1
 
     # install system files
     msg_progress_install "60" "Installing Kernel"
-    cp "/flash/$IMAGE_KERNEL" $TMPDIR/part1/KERNEL >> $LOGFILE 2>&1
+    cp "/flash/$IMAGE_KERNEL" "$TMPDIR"/part1/KERNEL >> "$LOGFILE" 2>&1
 
     msg_progress_install "65" "Installing System"
-    cp "/flash/$IMAGE_SYSTEM" $TMPDIR/part1/SYSTEM >> $LOGFILE 2>&1
+    cp "/flash/$IMAGE_SYSTEM" "$TMPDIR"/part1/SYSTEM >> "$LOGFILE" 2>&1
     sync
 
     # configuring bootloader
     msg_progress_install "80" "Setup bootloader with boot label = $DISKLABEL_SYSTEM and disk label = $DISKLABEL_STORAGE"
-    mkdir -p $TMPDIR/part1/EFI/BOOT
+    mkdir -p "$TMPDIR"/part1/EFI/BOOT
     cat << EOF > $TMPDIR/part1/syslinux.cfg
 DEFAULT linux
 PROMPT 0
@@ -290,37 +290,37 @@ menuentry "LibreELEC" {
 EOF
 
     # uefi boot / hybrid mode
-    cp /usr/share/syslinux/bootx64.efi $TMPDIR/part1/EFI/BOOT
-    cp /usr/share/syslinux/ldlinux.e64 $TMPDIR/part1/EFI/BOOT
-    cp /usr/share/grub/bootia32.efi $TMPDIR/part1/EFI/BOOT
+    cp /usr/share/syslinux/bootx64.efi "$TMPDIR"/part1/EFI/BOOT
+    cp /usr/share/syslinux/ldlinux.e64 "$TMPDIR"/part1/EFI/BOOT
+    cp /usr/share/grub/bootia32.efi "$TMPDIR"/part1/EFI/BOOT
     sync
 
     # umount system partition, remove mountpoint
     msg_progress_install "85" "Unmount $TMPDIR/part1"
-    umount $TMPDIR/part1 >> $LOGFILE 2>&1
+    umount "$TMPDIR"/part1 >> "$LOGFILE" 2>&1
 
     msg_progress_install "87" "Remove $TMPDIR/part1"
-    rmdir $TMPDIR/part1 >> $LOGFILE 2>&1
+    rmdir "$TMPDIR"/part1 >> "$LOGFILE" 2>&1
 
     if [ "$BACKUP_UNPACK" = "1" ]; then
       # mount storage partition
       msg_progress_install "89" "Creating $TMPDIR/part2"
-      mkdir -p $TMPDIR/part2 >> $LOGFILE 2>&1
+      mkdir -p "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
 
       msg_progress_install "90" "Mounting ${INSTALL_DEVICE}${PART2} to $TMPDIR/part2"
-      mount -t ext4 ${INSTALL_DEVICE}${PART2} $TMPDIR/part2 >> $LOGFILE 2>&1
+      mount -t ext4 "$INSTALL_DEVICE$PART2" "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
 
       msg_progress_install "92" "Restoring backup"
-      [ -f /flash/backup.tar.bz2 ] && tar -xjf /flash/backup.tar.bz2 -C $TMPDIR/part2 >> $LOGFILE 2>&1
-      [ -f /flash/backup.zip ] && unzip -qq /flash/backup.zip -d $TMPDIR/part2 >> $LOGFILE 2>&1
+      [ -f /flash/backup.tar.bz2 ] && tar -xjf /flash/backup.tar.bz2 -C "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
+      [ -f /flash/backup.zip ] && unzip -qq /flash/backup.zip -d "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
       sync
 
       # umount system partition, remove mountpoint
       msg_progress_install "97" "Unmount $TMPDIR/part2"
-      umount $TMPDIR/part2 >> $LOGFILE 2>&1
+      umount "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
 
       msg_progress_install "100" "Remove $TMPDIR/part2"
-      rmdir $TMPDIR/part2 >> $LOGFILE 2>&1
+      rmdir "$TMPDIR"/part2 >> "$LOGFILE" 2>&1
     fi
   } | whiptail --backtitle "$BACKTITLE" --gauge "Please wait while your system is being setup ..." 6 73 0
 
@@ -344,7 +344,7 @@ msg_progress_install() {
   dbglg "$2"
   sleep .3
   echo XXX
-  echo $1
+  echo "$1"
   echo "$2 ..."
   echo XXX
 }
@@ -354,7 +354,7 @@ prompt_gpt() {
   UEFI="0"
   # Get size in GB.
   # 2^41 bytes is the DOS limit (2199023255552 bytes, 2.2TB). Use GUID Partition Table.>= 2200GB
-  INSTALL_DEVICE_SIZE=$(($(cat /sys/block/${INSTALL_DEVICE#/dev/}/size)*512/1000/1000/1000))
+  INSTALL_DEVICE_SIZE=$(($(cat /sys/block/"${INSTALL_DEVICE#/dev/}"/size)*512/1000/1000/1000))
   if [ "$INSTALL_DEVICE_SIZE" -ge 2200 ] 2>/dev/null; then
     GPT="1"
   fi
@@ -375,7 +375,7 @@ prompt_backup_unpack() {
     MSG_TITLE="Restore backup files"
     MSG_DETAIL="Restore backup files to storage partition.\nFile backup.tar.bz2 or/and backup.zip exist on\ninstallation USB stick."
     DIALOG_OPTIONS="--defaultno"
-    if whiptail --backtitle "$BACKTITLE" --title "$MSG_TITLE" $DIALOG_OPTIONS --yesno "$MSG_DETAIL" 0 0; then
+    if whiptail --backtitle "$BACKTITLE" --title "$MSG_TITLE" "$DIALOG_OPTIONS" --yesno "$MSG_DETAIL" 0 0; then
       BACKUP_UNPACK="1"
     fi
   fi
@@ -398,7 +398,7 @@ out during the installation. \
       1 "Install @DISTRONAME@" \
       2 "View installation log" \
       3 "Save installation log" \
-      4 "Reboot" 2> $TMPDIR/mainmenu
+      4 "Reboot" 2> "$TMPDIR"/mainmenu
 
   case $? in
     0)
@@ -426,8 +426,8 @@ logfile_show() {
 logfile_save() {
   mount -o remount,rw /flash
 
-  mkdir -p $(dirname $LOGBACKUP)
-  cp $LOGFILE $LOGBACKUP
+  mkdir -p "$(dirname "$LOGBACKUP")"
+  cp "$LOGFILE" "$LOGBACKUP"
   sync
 
   mount -o remount,ro /flash
@@ -464,7 +464,7 @@ export NEWT_COLORS="$WHIPTAIL_COLORS"
 
 IMAGE_KERNEL="KERNEL"
 IMAGE_SYSTEM="SYSTEM"
-for arg in $(cat /proc/cmdline); do
+for arg in "$(cat /proc/cmdline)"; do
   case $arg in
     BOOT_IMAGE=*)
       IMAGE_KERNEL="${arg#*=}"
@@ -478,19 +478,19 @@ for arg in $(cat /proc/cmdline); do
 done
 
 # prepare temporary directory
-rm -rf $TMPDIR
-mkdir -p $TMPDIR
+rm -rf "$TMPDIR"
+mkdir -p "$TMPDIR"
 
 #create log file
-echo "@DISTRONAME@ Installer - $OS_VERSION started at:" > $LOGFILE
-date >> $LOGFILE
+echo "@DISTRONAME@ Installer - $OS_VERSION started at:" > "$LOGFILE"
+date >> "$LOGFILE"
 
 dbglg "System status"
-log_system_status >> $LOGFILE 2>&1
+log_system_status >> "$LOGFILE" 2>&1
 
 # generate the en_US.UTF-8 locale to enable line drawing
-mkdir -p $TMPDIR/locale
-localedef -i en_US -f UTF-8 $TMPDIR/locale/en_US.UTF-8
+mkdir -p "$TMPDIR"/locale
+localedef -i en_US -f UTF-8 "$TMPDIR"/locale/en_US.UTF-8
 export LOCPATH=$TMPDIR/locale
 export LC_ALL=en_US.UTF-8
 

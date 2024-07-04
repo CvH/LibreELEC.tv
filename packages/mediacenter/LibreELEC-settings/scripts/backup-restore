@@ -9,18 +9,18 @@
 hidecursor
 
 BACKUP_EXTENSION_LIST=".tar .tar.gz .tar.bz2 .tar.xz"
-for EXTENSION in $BACKUP_EXTENSION_LIST; do
+for EXTENSION in "${BACKUP_EXTENSION_LIST[@]}"; do
   BACKUP_FILE=$(find /storage/.restore/ -name "*${EXTENSION}" -print -quit 2>/dev/null)
-  [ -n "${BACKUP_FILE}" ] && break
+  [ "$BACKUP_FILE" != "" ] && break
 done
 
 
-if [ -f "${BACKUP_FILE}" ]; then
+if [ -f "$BACKUP_FILE" ]; then
   echo -e "RESTORE IN PROGRESS\n"
   echo -e "Please do not reboot or turn off your @DISTRONAME@ device!\n"
 
   StartProgress spinner "Checking backup file... "
-    tar tf "${BACKUP_FILE}" &>/dev/null
+    tar tf "$BACKUP_FILE" &>/dev/null
 
   if [ $? -eq 0 ]; then
     StopProgress "OK"
@@ -31,8 +31,8 @@ if [ -f "${BACKUP_FILE}" ]; then
       rm -rf /storage/.kodi \
              /storage/.cache \
              /storage/.config &>/dev/null
-      tar xf "${BACKUP_FILE}" -C / &>/dev/null
-      rm -f "${BACKUP_FILE}" &>/dev/null
+      tar xf "$BACKUP_FILE" -C / &>/dev/null
+      rm -f "$BACKUP_FILE" &>/dev/null
       sync
       StopProgress "done!"
 
@@ -44,7 +44,7 @@ if [ -f "${BACKUP_FILE}" ]; then
     echo -e "\nBackup file is not valid, or corrupt.\n"
 
     StartProgress spinner "Removing file to allow normal restart... "
-      rm -f "${BACKUP_FILE}" &>/dev/null
+      rm -f "$BACKUP_FILE" &>/dev/null
       sync
       StopProgress "done"
 

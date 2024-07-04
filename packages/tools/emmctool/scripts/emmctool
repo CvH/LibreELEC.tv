@@ -11,7 +11,7 @@
 do_backup(){
   do_umount
   echo "info: compressing ${EMMC} to ${2}, this will take time"
-  dd if="${EMMC}" | gzip > of="${2}"
+  dd if="$EMMC" | gzip > of="${2}"
   echo "info: compressing completed"
 }
 
@@ -23,30 +23,30 @@ do_detect(){
   echo -n d0074000.mmc > /sys/bus/platform/drivers/meson-gx-mmc/unbind
   echo -n d0074000.mmc > /sys/bus/platform/drivers/meson-gx-mmc/bind
   sleep 1
-  parted -s "${EMMC}" print
+  parted -s "$EMMC" print
 }
 
 do_info(){
-  BOOTINFO=$(dd if="${BOOT}" count=2048 2>/dev/null | strings | grep -e '^U-Boot ' | awk '{print $2}')
-  EMMCINFO=$(dd if="${EMMC}" count=2048 2>/dev/null | strings | grep -e '^U-Boot ' | awk '{print $2}')
+  BOOTINFO=$(dd if="$BOOT" count=2048 2>/dev/null | strings | grep -e '^U-Boot ' | awk '{print $2}')
+  EMMCINFO=$(dd if="$EMMC" count=2048 2>/dev/null | strings | grep -e '^U-Boot ' | awk '{print $2}')
   echo ""
-  if [ -n "${BOOTINFO}" ]; then
+  if [ "$BOOTINFO" != "" ]; then
     echo "info: boot device is $BOOT, U-boot version is ${BOOTINFO}"
   else
     echo "info: boot device is $BOOT"
   fi
-  if [ -n "${EMMCINFO}" ]; then
+  if [ "$EMMCINFO" != "" ]; then
     echo "info: emmc device is $EMMC, U-boot version is ${EMMCINFO}"
   else
     echo "info: emmc device is $EMMC"
   fi
   echo ""
-  parted -s "${EMMC}" print
+  parted -s "$EMMC" print
   echo ""
 }
 
 do_labels(){
-  if [ -n "${2}" ] && [ -n "${3}" ]; then
+  if [ "${2}" != "" ] && [ "${3}" != "" ]; then
     BOOTLABEL=$(echo "${2}" | awk 'BEGIN { getline; print toupper($0) }')
     DISKLABEL=$(echo "${3}" | awk 'BEGIN { getline; print toupper($0) }')
   else
@@ -56,8 +56,8 @@ do_labels(){
   echo "info: using boot=LABEL=${BOOTLABEL} and disk=LABEL=${DISKLABEL}"
   do_umount
   echo "info: changing label values on partitions"
-  fatlabel "${EMMC}p1" "${BOOTLABEL}"
-  e2label "${EMMC}p2" "${DISKLABEL}"
+  fatlabel "${EMMC}p1" "$BOOTLABEL"
+  e2label "${EMMC}p2" "$DISKLABEL"
   sleep 1
   echo "info: remounting ${EMMC}p1 to /var/media/${BOOTLABEL}"
   mkdir -p "/var/media/${BOOTLABEL}"
@@ -78,12 +78,12 @@ do_labels(){
 }
 
 do_resize(){
-  if [ -z "${DISKLABEL}" ]; then
+  if [ "$DISKLABEL" = "" ]; then
     DISKLABEL=$(blkid | grep "${EMMC}"p2 | awk -F'"' '{print $2}')
   fi
   do_umount
   echo "info: resizing partition ${EMMC}p2 to 100%"
-  parted -s -m "${EMMC}" resizepart 2 100% || parted -s -m "${EMMC}" resizepart 2 yes 100%
+  parted -s -m "$EMMC" resizepart 2 100% || parted -s -m "$EMMC" resizepart 2 yes 100%
   sleep 5
   do_umount
   echo "info: checking filesystem"
@@ -100,19 +100,19 @@ do_resize(){
   if [ -f "/var/media/${DISKLABEL}/.please_resize_me" ]; then
     rm "/var/media/${DISKLABEL}/.please_resize_me"
   fi
-  parted -s "${EMMC}" print
+  parted -s "$EMMC" print
 }
 
 do_storage(){
-  if [ -n "${2}" ]; then
+  if [ "${2}" != "" ]; then
     DISKLABEL=$(echo "${2}" | awk 'BEGIN { getline; print toupper($0) }')
   else
     DISKLABEL="DISK"
   fi
   do_umount
   echo "info: converting emmc for /storage use"
-  parted -s "${EMMC}" mklabel gpt
-  parted -s "${EMMC}" -a min unit s mkpart EMMC_STORAGE ext4 34 100%
+  parted -s "$EMMC" mklabel gpt
+  parted -s "$EMMC" -a min unit s mkpart EMMC_STORAGE ext4 34 100%
   sleep 1
   mkfs.ext4 "${EMMC}p1"
   sleep 1
@@ -131,7 +131,7 @@ do_storage(){
 }
 
 do_umount(){
-  for mount in $(grep "${EMMC}" /proc/mounts | awk '{print $1}'); do
+  for mount in "$(grep "$EMMC" /proc/mounts | awk '{print $1}')"; do
     echo "info: unmounting $mount"
     umount -f "$mount"
     sleep 2
@@ -161,16 +161,16 @@ do_write(){
         ;;
       *.img.gz)
         echo "info: writing ${2} to ${EMMC}"
-        gunzip -c "${2}" | dd of="${EMMC}" bs=1M
+        gunzip -c "${2}" | dd of="$EMMC" bs=1M
         ;;
       *.img)
         echo "info: writing ${2} to ${EMMC}"
-        dd if="${2}" of="${EMMC}" bs=1M
+        dd if="${2}" of="$EMMC" bs=1M
         ;;
       *)
         echo "error: ${2} is not a valid image file!"
         exit 1
-    esac
+    ;; esac
   else
     echo "error: ${2} not found!"
     exit 1
@@ -180,7 +180,7 @@ do_write(){
 do_zero(){
   do_umount
   echo "info: zeroing ${EMMC}, be patient, this will take time"
-  dd if="/dev/zero" of="${EMMC}" bs=1M
+  dd if="/dev/zero" of="$EMMC" bs=1M
   echo "info: zeroing complete"
 }
 
@@ -201,14 +201,14 @@ do_help(){
 BOOT=$(grep /flash /proc/mounts | awk '{print $1}' | sed 's/p[012]//g')
 EMMC=$(find /dev -name "mmcblk*rpmb" | sed 's/rpmb//g' | head -n 1)
 
-if [ -z "${EMMC}" ]; then
+if [ "$EMMC" = "" ]; then
   echo "error: no emmc module detected!"
   exit 1
 fi
 
 case $(dtname) in
   azw*|bananapi*|friendlyarm*|hardkernel*|khadas*|libretech*|radxa*|wetek*)
-    if [ "${BOOT}" = "${EMMC}" ]; then
+    if [ "$BOOT" = "$EMMC" ]; then
       do_info
       echo "Your device is booted from the eMMC module!"
       echo ""

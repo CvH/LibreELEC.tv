@@ -27,7 +27,7 @@ ls_dir_recursive() {
 }
 
 usage() {
-  [ -n "${1}" ] && echo "Unknown argument: ${1}"
+  [ "${1}" != "" ] && echo "Unknown argument: ${1}"
   cat <<EOF
 Usage: $0 [-c] [-h]
 
@@ -42,7 +42,7 @@ OUTPUT="/usr/bin/pastebinit"
 while getopts ":hc" opt; do
   case ${opt} in
     c) OUTPUT="cat";;
-    ?) usage "${OPTARG}";;
+    ?) usage "$OPTARG";;
     h) usage;;
   esac
 done
@@ -57,7 +57,7 @@ else
   KODI_ROOT="/storage/.kodi/temp"
 fi
 
-if [ "$(basename $0)" = "pastekodi" ]; then
+if [ "$(basename "$0")" = "pastekodi" ]; then
   LOG_TYPE="System"
   LOG_FILE="${KODI_ROOT}/kodi.log"
 else
@@ -68,25 +68,25 @@ fi
 (
   echo "${LOG_TYPE} log output for: $(lsb_release)"
 
-  if [ "${SYSTEM_ARCH}" = "x86_64" ]; then
+  if [ "$SYSTEM_ARCH" = "x86_64" ]; then
     if [ -d "/sys/firmware/efi" ]; then
       echo "Firmware Boot Mode: EFI"
     else
       echo "Firmware Boot Mode: BIOS"
     fi
   fi
-  if [ "${LIBREELEC_PROJECT}" = "RPi" ]; then
+  if [ "$LIBREELEC_PROJECT" = "RPi" ]; then
     echo "RPi Hardware Revision: $(vcgencmd otp_dump | grep 30: | cut -d: -f2)"
     echo "RPi $(vcgencmd get_throttled)"
   fi
 
-  cat_file "${LOG_FILE}"
+  cat_file "$LOG_FILE"
 
   journalctl -a -b -0 -o short-precise | cat_data "journalctl -a -b -0"
 
   kmsprint | cat_data "kmsprint"
 
-  if [ "${LIBREELEC_PROJECT}" = "RPi" ]; then
+  if [ "$LIBREELEC_PROJECT" = "RPi" ]; then
     vcgencmd bootloader_version | cat_data "Bootloader version"
   fi
 
@@ -110,9 +110,9 @@ fi
 
   pem_sys="$(sha256sum /etc/ssl/cacert.pem.system | cut -d' ' -f1)"
   pem_run="$(sha256sum /run/libreelec/cacert.pem | cut -d' ' -f1)"
-  if [ "${pem_sys}" = "${pem_run}" ]; then
+  if [ "$pem_sys" = "$pem_run" ]; then
     cat_data "/run/libreelec/cacert.pem is default" </dev/null
   else
     cat_file /run/libreelec/cacert.pem "/run/libreelec/cacert.pem (modified)"
   fi
-) | ${OUTPUT} 2>/dev/null
+) | "$OUTPUT" 2>/dev/null

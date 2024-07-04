@@ -12,7 +12,7 @@ if [ -d /usr/share/kodi/addons/service.touchscreen ]; then
   ADDON_DIR="/usr/share/kodi/addons/service.touchscreen"
 fi
 
-. $ADDON_DIR/bin/ts_env.sh
+. "$ADDON_DIR"/bin/ts_env.sh
 
 params=$*
 
@@ -27,15 +27,15 @@ fi
 
 echo "    touchscreen device: '$TSLIB_TSDEVICE'"
 
-if [ -n "$TSLIB_RES_X" -a -n "$TSLIB_RES_Y" ]; then
+if [ "$TSLIB_RES_X" != "" -a -n "$TSLIB_RES_Y" ]; then
   echo "touchscreen resolution: '${TSLIB_RES_X}x${TSLIB_RES_Y}'"
   params="-x $TSLIB_RES_X -y $TSLIB_RES_Y $params"
 fi
 
 echo "params: .$params."
-if [ ! -x $ADDON_HOME/ts_uinput_touch ]; then
-  ts_uinput_touch $params
+if [ ! -x "$ADDON_HOME"/ts_uinput_touch ]; then
+  ts_uinput_touch "$params"
 else
   echo "Using $ADDON_HOME/ts_uinput_touch"
-  $ADDON_HOME/ts_uinput_touch $params
+  "$ADDON_HOME"/ts_uinput_touch "$params"
 fi

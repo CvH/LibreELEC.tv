@@ -18,7 +18,7 @@ case "$LIBREELEC_ARCH" in
       fi
       if [ -e "$ALSA" ]; then
         echo "Setting Raspberry Pi onboard audio playback route"
-        index="$(readlink $ALSA)"
+        index="$(readlink "$ALSA")"
         index="${index##*card}"
         amixer -c "$index" cset name="PCM Playback Route" "$sc_r"
       fi
@@ -26,16 +26,16 @@ case "$LIBREELEC_ARCH" in
     ;;
 esac
 
-[ -n "$sc_h" ] && sc_H="--hostID $sc_h"
-[ -n "$sc_s" ] && sc_S="--soundcard $sc_s"
-[ -n "$sc_addr" ] && HOST="--host $sc_addr"
+[ "$sc_h" != "" ] && sc_H="--hostID $sc_h"
+[ "$sc_s" != "" ] && sc_S="--soundcard $sc_s"
+[ "$sc_addr" != "" ] && HOST="--host $sc_addr"
 
 HOME="$ADDON_HOME" \
 nice -n "$sc_n" \
 snapclient \
-  $sc_H \
+  "$sc_H" \
   --latency "$sc_l" \
-  $HOST \
+  "$HOST" \
   --port "$sc_p" \
-  $sc_S \
+  "$sc_S" \
   > /dev/null

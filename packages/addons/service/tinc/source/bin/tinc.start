@@ -13,7 +13,7 @@ if [ -d "$DIR_LEGACY" ]; then
   exit $?
 fi
 
-[ -z "$tinc_loglevel" ] && tinc_loglevel="3"
+[ "$tinc_loglevel" = "" ] && tinc_loglevel="3"
 
 NET="vmnet_le"
 NAME="${tinc_subnet//./_}"
@@ -56,7 +56,7 @@ Name                  = $NAME
 EOF
 
 mkdir -p "$DATA_LOCAL"
-if [ -n "$tinc_address" ]; then
+if [ "$tinc_address" != "" ]; then
   echo "Address          = $tinc_address" >> "$DATA_LOCAL/$NAME"
 fi
 cat "$CONF_KEYS/ed25519_key.pub" >> "$DATA_LOCAL/$NAME"

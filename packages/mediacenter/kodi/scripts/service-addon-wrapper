@@ -18,10 +18,10 @@ fi
 
 SERVICE_FILE="${ADDON_PATH}/system.d/${ADDON_ID}.service"
 
-if [ -f "${SERVICE_FILE}" ] ; then
-  case "${CONTEXT}" in
+if [ -f "$SERVICE_FILE" ] ; then
+  case "$CONTEXT" in
     enable)
-      systemctl enable "${SERVICE_FILE}"
+      systemctl enable "$SERVICE_FILE"
       chmod +x "${ADDON_PATH}/bin"/*
       systemctl start "${ADDON_ID}.service"
       ;;
@@ -34,7 +34,7 @@ if [ -f "${SERVICE_FILE}" ] ; then
       # make sure to stop and re-install service
       systemctl stop "${ADDON_ID}.service"
       systemctl disable "${ADDON_ID}.service"
-      systemctl enable "${SERVICE_FILE}"
+      systemctl enable "$SERVICE_FILE"
       chmod +x "${ADDON_PATH}/bin"/*
       systemctl start "${ADDON_ID}.service"
       ;;
@@ -59,7 +59,7 @@ fi
 # files installed in the default /usr/lib/kernel-overlays
 # location, not inside the kodi addon dir
 
-case "${ADDON_PATH}" in
+case "$ADDON_PATH" in
   /usr/share/kodi/addons/*)
     OVERLAY_PATH="/usr/lib/kernel-overlays/${ADDON_ID}"
     ;;
@@ -69,22 +69,22 @@ case "${ADDON_PATH}" in
 esac
 
 create_overlay_conf() {
-  rm -f "${OVERLAY_CONF}"
-  echo "${OVERLAY_PATH}" > "${OVERLAY_CONF}"
+  rm -f "$OVERLAY_CONF"
+  echo "$OVERLAY_PATH" > "$OVERLAY_CONF"
 }
 
-if [ -d "${OVERLAY_PATH}" ] ; then
+if [ -d "$OVERLAY_PATH" ] ; then
   OVERLAY_CONF="/storage/.cache/kernel-overlays/50-${ADDON_ID}.conf"
 
-  case "${CONTEXT}" in
+  case "$CONTEXT" in
     enable | post-install )
       create_overlay_conf
       ;;
     disable | pre-uninstall )
-      rm -f "${OVERLAY_CONF}"
+      rm -f "$OVERLAY_CONF"
       ;;
     update )
-      if [ -e "${OVERLAY_CONF}" ] ; then
+      if [ -e "$OVERLAY_CONF" ] ; then
         create_overlay_conf
       fi
       ;;

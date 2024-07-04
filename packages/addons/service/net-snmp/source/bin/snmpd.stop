@@ -11,4 +11,4 @@ ADDON_DIR="$HOME/.kodi/addons/$ADDON_ID"
 ADDON_HOME="$HOME/.kodi/userdata/addon_data/$ADDON_ID"
 
 PID=`cat /var/run/snmpd.pid`
-kill -TERM $PID
+kill -TERM "$PID"

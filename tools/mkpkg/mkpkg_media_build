@@ -5,14 +5,14 @@
 # Copyright (C) 2016-present Team LibreELEC (https://libreelec.tv)
 
 # set media_build version you want to use
-if [ -z "$1" ]; then
+if [ "$1" = "" ]; then
   MEDIA_BUILD_HASH="master"
 else
   MEDIA_BUILD_HASH="$1"
 fi
 
 # name of the package
-DVB_MKPKG_FOLDER="$(pwd)"
+DVB_MKPKG_FOLDER="$PWD"
 
 # remove old files
 echo "removing old sources ..."
@@ -31,10 +31,10 @@ fi
 #get log
 cd media_build/
   git pull
-  git checkout $MEDIA_BUILD_HASH
+  git checkout "$MEDIA_BUILD_HASH"
   GIT_LOG_MEDIA_BUILD=`git log --pretty=oneline -n1`
 
-cd $DVB_MKPKG_FOLDER/
+cd "$DVB_MKPKG_FOLDER"/
 
 # media_tree dl
 echo "getting sources ..."
@@ -48,7 +48,7 @@ cd media_tree/
   GIT_LOG_MEDIA_TREE=`git log --pretty=oneline -n1`
   GIT_REV=`git log -n1 --pretty=format:"%ad" --date=short`
 
-cd $DVB_MKPKG_FOLDER/
+cd "$DVB_MKPKG_FOLDER"/
 
 ################################################################################
 
@@ -57,7 +57,7 @@ echo "create media_tree tar"
 cd media_build/linux
 make tar DIR="$DVB_MKPKG_FOLDER/media_tree/"
 
-cd $DVB_MKPKG_FOLDER
+cd "$DVB_MKPKG_FOLDER"
 
 # cleanup
 rm -rf media_tree/
@@ -67,13 +67,13 @@ rm -rf media_build/.git/
 echo "package include: \n\nmedia_build:\n$GIT_LOG_MEDIA_BUILD \n\nmedia_tree:\n$GIT_LOG_MEDIA_TREE \n" > media_build/LE_versions
 
 # rename buildfolder
-mv media_build/ media_build-$GIT_REV/
+mv media_build/ media_build-"$GIT_REV"/
 
 ################################################################################
 
 # pack sources
 echo "packing sources ..."
-tar cvJf media_build-$GIT_REV.tar.xz media_build-$GIT_REV
+tar cvJf media_build-"$GIT_REV".tar.xz media_build-"$GIT_REV"
 
 echo "remove temporary sourcedir ..."
-rm -rf media_build-$GIT_REV
+rm -rf media_build-"$GIT_REV"

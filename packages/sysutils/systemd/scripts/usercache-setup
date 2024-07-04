@@ -16,7 +16,7 @@ if [ -f /storage/.cache/shadow -a -f /usr/cache/shadow ]; then
 
   # Overwrite users shadow file with default details, replacing root with any existing value
   # If current file is garbage (ie. missing root) then replace it
-  if [ -n "${userroot}" ]; then
+  if [ "$userroot" != "" ]; then
     sed -e "s ^root:.* ${userroot} " /usr/cache/shadow >/storage/.cache/shadow
   else
     cp -fp /usr/cache/shadow /storage/.cache/shadow

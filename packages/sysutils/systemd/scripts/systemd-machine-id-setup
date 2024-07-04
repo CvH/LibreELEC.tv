@@ -10,7 +10,7 @@
 MACHINEID="$(cat /storage/.cache/systemd-machine-id 2>/dev/null)"
 [ "${#MACHINEID}" != "32" ] && MACHINEID=
 [[ "${MACHINEID//[a-f0-9]/}" != "" ]] && MACHINEID=
-[ -z "${MACHINEID}" ] && MACHINEID=$(/usr/bin/dbus-uuidgen)
+[ "$MACHINEID" = "" ] && MACHINEID=$(/usr/bin/dbus-uuidgen)
 
 # For first boot detection systemd may have overmounted the file
 umount /storage/.cache/systemd-machine-id >/dev/null 2>&1

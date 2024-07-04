@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2021-present Team LibreELEC (https://libreelec.tv)
 
-if [ -z "${1}" -o "${1}" == "help" -o "${1}" == "--help" -o "${1}" == "h" -o "${1}" == "-h" ]; then
+if [ "${1}" = "" -o "${1}" == "help" -o "${1}" == "--help" -o "${1}" == "h" -o "${1}" == "-h" ]; then
   echo -e "A kernel config command must be specified:\n"
   echo -e "${0} menuconfig"
   echo -e ""
@@ -16,9 +16,9 @@ KERNEL_CONFIG_COMMAND="$1"
 
 . config/options linux
 
-${SCRIPTS}/unpack linux
+"$SCRIPTS"/unpack linux
 
-AVAILABLE_KERNEL_CONFIG_COMMANDS="$(kernel_make -C ${PKG_BUILD} help | sed -n '/Configuration targets:/,/Other generic targets:/p' | sed -n -E 's/^  ([a-z0-9]+)[ -]*.*/\1/p')"
+AVAILABLE_KERNEL_CONFIG_COMMANDS="$(kernel_make -C "$PKG_BUILD" help | sed -n '/Configuration targets:/,/Other generic targets:/p' | sed -n -E 's/^  ([a-z0-9]+)[ -]*.*/\1/p')"
 
 print_config_commands() {
   echo -e "Available kernel config commands are:\n\n${AVAILABLE_KERNEL_CONFIG_COMMANDS}"
@@ -29,7 +29,7 @@ if [ "${1}" == "commands" ]; then
   exit
 fi
 
-if [ -z "$(echo ${AVAILABLE_KERNEL_CONFIG_COMMANDS} | grep ${KERNEL_CONFIG_COMMAND})" ]; then
+if [ "$(echo "$AVAILABLE_KERNEL_CONFIG_COMMANDS" | grep "$KERNEL_CONFIG_COMMAND")" = "" ]; then
   echo -e "\"${KERNEL_CONFIG_COMMAND}\" is not an available kernel config command\n"
   print_config_commands
   exit
@@ -37,4 +37,4 @@ fi
 
 tools/check_kernel_config
 
-kernel_make KCONFIG_CONFIG=${PKG_KERNEL_CFG_FILE} -C ${PKG_BUILD} ${KERNEL_CONFIG_COMMAND}
+kernel_make KCONFIG_CONFIG="$PKG_KERNEL_CFG_FILE" -C "$PKG_BUILD" "$KERNEL_CONFIG_COMMAND"

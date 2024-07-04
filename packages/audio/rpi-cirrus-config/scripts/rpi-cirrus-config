@@ -4,12 +4,12 @@
 
 . /etc/profile
 
-if [ -f $HOME/.config/sound.conf ] ; then
-    alsactl restore -f $HOME/.config/sound.conf
+if [ -f "$HOME"/.config/sound.conf ] ; then
+    alsactl restore -f "$HOME"/.config/sound.conf
 else
-    if [ -r $HOME/.config/rpi-cirrus-config.sh ] ; then
+    if [ -r "$HOME"/.config/rpi-cirrus-config.sh ] ; then
         progress "Setting up Cirrus Logic Audio Card with user config"
-        sh $HOME/.config/rpi-cirrus-config.sh
+        sh "$HOME"/.config/rpi-cirrus-config.sh
     else
         progress "Setting up Cirrus Logic Audio Card"
 

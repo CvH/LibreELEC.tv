@@ -13,7 +13,7 @@ if [ "$inadyn_S" == "inadyn.conf" ]; then
     config="$ADDON_HOME/inadyn.conf"
 else
     config="$ADDON_HOME/inadyn.temp"
-    if [ -z "$inadyn_a" -o -z "$inadyn_p" -o -z "$inadyn_u" ]; then
+    if [ "$inadyn_a" = "" -o -z "$inadyn_p" -o -z "$inadyn_u" ]; then
         rm -fr "$config"
     else
         echo "\

@@ -19,7 +19,7 @@ delete_edid() {
 
 create_edid() {
   CONNECTORS=$(dump-active-edids -q)
-  if [ $? -ne 0 -o -z "${CONNECTORS}" ]; then
+  if [ $? -ne 0 -o -z "$CONNECTORS" ]; then
     echo "error: cannot detemine active connectors"
     exit 1
   fi
@@ -28,7 +28,7 @@ create_edid() {
     echo "error creating edid.cpio"
     exit 1
   fi
-  update-bootloader-edid set ${CONNECTORS}
+  update-bootloader-edid set "$CONNECTORS"
   if [ $? -eq 0 ]; then
     echo "successfully installed edid override for ${CONNECTORS}"
   else

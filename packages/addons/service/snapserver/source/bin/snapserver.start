@@ -8,7 +8,7 @@ oe_setup_addon service.snapserver
 
 config="pulseaudio.conf"
 link="/storage/.config/pulse-daemon.conf.d/50-snapserver.conf"
-mkdir -p "$(dirname $link)"
+mkdir -p "$(dirname "$link")"
 ln -sf "$ADDON_HOME/$config" "$link"
 if [ ! -e "$ADDON_HOME/$config" ]; then
   cp "$ADDON_DIR/config/$config" "$ADDON_HOME"
@@ -16,7 +16,7 @@ fi
 
 file="/tmp/snapkodi"
 sink_name="Snapserver"
-if [ -z "$(pactl list short | grep $sink_name)" ]; then
+if [ "$(pactl list short | grep "$sink_name")" = "" ]; then
   pactl load-module module-pipe-sink \
                     file="$file" \
                     rate=48000 \

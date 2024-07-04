@@ -6,9 +6,9 @@
 MOUNTPOINT="/tmp/LibreELEC-System"
 
 md5sumCheck() {
-  ( cd $MOUNTPOINT
+  ( cd "$MOUNTPOINT"
     echo "checking MD5: $1"
-    md5sum -c $1.md5
+    md5sum -c "$1".md5
     if [ "$?" = "1" ]; then
       echo "#######################################################"
       echo "#                                                     #"
@@ -20,25 +20,25 @@ md5sumCheck() {
       echo "#######################################################"
       exit 1
     fi
-    rm -rf $1.md5
+    rm -rf "$1".md5
   )
 }
 
-if [ -z $part1 -o -z $part2 -o -z $id1 -o -z $id2 ]; then
+if [ "$part1" = "" -o -z "$part2" -o -z "$id1" -o -z "$id2" ]; then
   echo "error: part1, part2, id1 or id2 not specified"
   echo "actual values:"
-  echo "part1:" $part1
-  echo "part2:" $part2
-  echo "id1  :" $id1
-  echo "id2  :" $id2
+  echo "part1:" "$part1"
+  echo "part2:" "$part2"
+  echo "id1  :" "$id1"
+  echo "id2  :" "$id2"
   exit 1
 fi
 
 # create mountpoint
-  mkdir -p $MOUNTPOINT
+  mkdir -p "$MOUNTPOINT"
 
 # mount needed partition
-  mount $part1 $MOUNTPOINT
+  mount "$part1" "$MOUNTPOINT"
 
 # check md5sum
   md5sumCheck kernel.img
@@ -46,8 +46,8 @@ fi
 
 # create bootloader configuration
   echo "creating bootloader configuration..."
-  echo "boot=$id1 disk=$id2 quiet @EXTRA_CMDLINE@" > $MOUNTPOINT/cmdline.txt
+  echo "boot=$id1 disk=$id2 quiet @EXTRA_CMDLINE@" > "$MOUNTPOINT"/cmdline.txt
 
 # cleanup mountpoint
-  umount $MOUNTPOINT
-  rmdir $MOUNTPOINT
+  umount "$MOUNTPOINT"
+  rmdir "$MOUNTPOINT"

@@ -12,6 +12,6 @@ message="$message\n "
 message="$message\n With LibreELEC you have root access by default, so you dont need 'sudo'"
 message="$message\n "
 
-echo -e $message
+echo -e "$message"
 
 exit 1

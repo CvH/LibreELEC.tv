@@ -40,7 +40,7 @@ help(){
 
 # command line opts
 while getopts hdfrb OPT; do
-  case "${OPT}" in
+  case "$OPT" in
     h)
       help
       exit 0
@@ -69,68 +69,68 @@ shift $((${OPTIND}-1))
 
 
 # sanity checking
-if [ ! -d "${SOURCES}" ]; then
+if [ ! -d "$SOURCES" ]; then
   die "error: ${SOURCES} is not a directory"
-elif [ "${DESTRUCTIVE_RUN}" = "true" -a "${BUILD_SOURCES}" = "true" ]; then
+elif [ "$DESTRUCTIVE_RUN" = "true" -a "$BUILD_SOURCES" = "true" ]; then
   die "error: options '-d' and '-b' are mutually exclusive"
 fi
 
 
 # main
 # process files in SOURCES
-for SOURCE_PACKAGE in $(find "${SOURCES}/" -mindepth 1 -type d); do
-  PACKAGE_NAME=$(basename "${SOURCE_PACKAGE}")
+for SOURCE_PACKAGE in "$(find "${SOURCES}/" -mindepth 1 -type d)"; do
+  PACKAGE_NAME=$(basename "$SOURCE_PACKAGE")
 
   # check if package is still in the tree to selectively prune, or delete the dir
-  PACKAGE_DIR=$(get_pkg_directory "${PACKAGE_NAME}" || true)
-  if [ -n "${PACKAGE_DIR}" ]; then
-    PACKAGE_SOURCE_FILE=$(get_pkg_variable "${PACKAGE_NAME}" "PKG_SOURCE_NAME")
+  PACKAGE_DIR=$(get_pkg_directory "$PACKAGE_NAME" || true)
+  if [ "$PACKAGE_DIR" != "" ]; then
+    PACKAGE_SOURCE_FILE=$(get_pkg_variable "$PACKAGE_NAME" "PKG_SOURCE_NAME")
   fi
   # PACKAGE_DIR is null if not in tree, PACKAGE_SOURCE_FILE is null if PKG_ARCH mismatch
-  if [ -n "${PACKAGE_DIR}" -a -n "${PACKAGE_SOURCE_FILE}" ]; then
-    CUR_PACKAGE_FILE=$(basename "${PACKAGE_SOURCE_FILE}")
+  if [ "$PACKAGE_DIR" != "" -a -n "$PACKAGE_SOURCE_FILE" ]; then
+    CUR_PACKAGE_FILE=$(basename "$PACKAGE_SOURCE_FILE")
 
-    for FILE in $(find "${SOURCE_PACKAGE}/" -type f); do
+    for FILE in "$(find "${SOURCE_PACKAGE}/" -type f)"; do
       # don't test auxilliary files
-      if [[ "${FILE}" = *.url ]] || [[ "${FILE}" = *.sha256 ]]; then
+      if [[ "$FILE" = *.url ]] || [[ "$FILE" = *.sha256 ]]; then
         continue
       fi
 
       # obsolete file handling
-      if [ "${FILE}" != "${SOURCES}/${PACKAGE_NAME}/${CUR_PACKAGE_FILE}" ]; then
-        ls -1 "${FILE}"*
-        PACKAGES_TO_UPDATE+="${PACKAGE_NAME}"
+      if [ "$FILE" != "${SOURCES}/${PACKAGE_NAME}/${CUR_PACKAGE_FILE}" ]; then
+        ls -1 "$FILE"*
+        PACKAGES_TO_UPDATE+="$PACKAGE_NAME"
 
-        if [ "${DESTRUCTIVE_RUN}" = "true" ]; then
-          rm -f "${FILE}"*
+        if [ "$DESTRUCTIVE_RUN" = "true" ]; then
+          rm -f "$FILE"*
         fi
       # current file handling
-      elif [ "${BUILD_SOURCES}" = "true" ]; then
+      elif [ "$BUILD_SOURCES" = "true" ]; then
         echo "Relocating ${PACKAGE_NAME} files..."
         mkdir -p "${NEW_SOURCES}/${PACKAGE_NAME}"
-        mv "${FILE}"* "${NEW_SOURCES}/${PACKAGE_NAME}/"
+        mv "$FILE"* "${NEW_SOURCES}/${PACKAGE_NAME}/"
       fi
     done
   else
     echo "info: ${PACKAGE_NAME} no longer in tree"
-    if [ "${DESTRUCTIVE_RUN}" = "true" ]; then
-      rm -rf "${SOURCE_PACKAGE}"
+    if [ "$DESTRUCTIVE_RUN" = "true" ]; then
+      rm -rf "$SOURCE_PACKAGE"
     fi
   fi
 done
 
-if [ "${BUILD_SOURCES}" = "true" -a "${REPLACE_OLD}" = "true" ]; then
-  rm -rf "${SOURCES}"
-  mv "${NEW_SOURCES}" "${SOURCES}"
+if [ "$BUILD_SOURCES" = "true" -a "$REPLACE_OLD" = "true" ]; then
+  rm -rf "$SOURCES"
+  mv "$NEW_SOURCES" "$SOURCES"
 fi
 
-if [ "${FETCH_UPDATES}" = "true" ]; then
-  if "${BUILD_SOURCES}" = "true" -a "${REPLACE_OLD}" = "false" ]; then
-    SOURCES="${NEW_SOURCES}"
+if [ "$FETCH_UPDATES" = "true" ]; then
+  if "$BUILD_SOURCES" = "true" -a "$REPLACE_OLD" = "false" ]; then
+    SOURCES="$NEW_SOURCES"
   fi
   for PACKAGE in "${PACKAGES_TO_UPDATE[@]}"; do
     # scripts/get determines if tarball is present before downloading
-    SOURCES_DIR="${SOURCES}" "${SCRIPTS}/get" "${PACKAGE}"
+    SOURCES_DIR="$SOURCES" "${SCRIPTS}/get" "$PACKAGE"
   done
 fi
 

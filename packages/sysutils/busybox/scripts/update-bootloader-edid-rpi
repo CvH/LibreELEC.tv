@@ -17,7 +17,7 @@ check_args() {
     echo "error: no connector(s) specified!"
     exit 1
   fi
-  if [ ! -f "${EDID_CPIO}" ]; then
+  if [ ! -f "$EDID_CPIO" ]; then
     echo "error: ${EDID_CPIO} not present"
     exit 1
   fi
@@ -30,22 +30,22 @@ check_args() {
 }
 
 cleanup_config_txt() {
-  sed -i "/^initramfs edid\.cpio/d" ${CONFIG_TXT}
+  sed -i "/^initramfs edid\.cpio/d" "$CONFIG_TXT"
 }
 
 get_cleaned_cmdline_txt() {
   sed \
     -e 's| drm\.edid_firmware=[^ ]*||g' \
     -e 's| video=[^ ]*||g' \
-    ${CMDLINE_TXT}
+    "$CMDLINE_TXT"
 }
 
 add_initramfs() {
   # make sure config.txt ends with a newline
-  if [ "$(tail -c 1 ${CONFIG_TXT} | tr -c -d '\n' | tr '\n' 'X')" != "X" ]; then
-    echo "" >> ${CONFIG_TXT}
+  if [ "$(tail -c 1 "$CONFIG_TXT" | tr -c -d '\n' | tr '\n' 'X')" != "X" ]; then
+    echo "" >> "$CONFIG_TXT"
   fi
-  echo "initramfs edid.cpio" >> ${CONFIG_TXT}
+  echo "initramfs edid.cpio" >> "$CONFIG_TXT"
 }
 
 add_cmdline() {
@@ -54,10 +54,10 @@ add_cmdline() {
   VIDEO=""
   for conn in "$@"; do
     VIDEO="${VIDEO} video=${conn}:D"
-    [ -n "${FIRMWARE}" ] && FIRMWARE="${FIRMWARE},"
+    [ "$FIRMWARE" != "" ] && FIRMWARE="${FIRMWARE},"
     FIRMWARE="${FIRMWARE}${conn}:edid/edid-${conn}.bin"
   done
-  echo "${CMDLINE} drm.edid_firmware=${FIRMWARE}${VIDEO}" > ${CMDLINE_TXT}
+  echo "${CMDLINE} drm.edid_firmware=${FIRMWARE}${VIDEO}" > "$CMDLINE_TXT"
 }
 
 set_edids() {
@@ -73,7 +73,7 @@ delete_edids() {
   mount -o remount,rw /flash
   cleanup_config_txt
   CMDLINE=$(get_cleaned_cmdline_txt)
-  echo "${CMDLINE}" > ${CMDLINE_TXT}
+  echo "$CMDLINE" > "$CMDLINE_TXT"
   mount -o remount,ro /flash
 }
 

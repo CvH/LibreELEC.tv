@@ -15,14 +15,14 @@ echo "getting sources..."
   cd ..
 
 echo "copying sources..."
-  rm -rf rtmpdump-$GIT_REV
-  cp -R rtmpdump.git rtmpdump-$GIT_REV
+  rm -rf rtmpdump-"$GIT_REV"
+  cp -R rtmpdump.git rtmpdump-"$GIT_REV"
 
 echo "cleaning sources..."
-  rm -rf rtmpdump-$GIT_REV/.git
+  rm -rf rtmpdump-"$GIT_REV"/.git
 
 echo "packing sources..."
-  tar cvJf rtmpdump-$GIT_REV.tar.xz rtmpdump-$GIT_REV
+  tar cvJf rtmpdump-"$GIT_REV".tar.xz rtmpdump-"$GIT_REV"
 
 echo "remove temporary sourcedir..."
-  rm -rf rtmpdump-$GIT_REV
+  rm -rf rtmpdump-"$GIT_REV"
