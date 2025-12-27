@@ -1,59 +1,32 @@
 name: Automated MariaDB Update
-
 on:
   workflow_dispatch:
-
 jobs:
   update-mariadb:
     runs-on: ubuntu-latest
-
     # Hard stop if not running in the intended repository
     if: github.repository == 'CvH/LibreELEC.tv'
-
     permissions:
       contents: write
       pull-requests: write
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Run update script
         run: |
           chmod +x tools/update-pkg
           ./tools/update-pkg mariadb 12.1.2
-
-      # - name: Check for changes
-      #   id: changes
-      #   run: |
-      #     if git status --porcelain | grep .; then
-      #       echo "changed=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "changed=false" >> $GITHUB_OUTPUT
-      #     fi
-
-      # - name: Commit changes
-      #   if: steps.changes.outputs.changed == 'true'
-      #   run: |
-      #     git checkout -b pr-automated-mariadb-12.1.2
-      #     git add .
-      #     git commit -m "mariadb: update to 12.1.2"
-
       - name: Push branch
-        # if: steps.changes.outputs.changed == 'true'
         run: |
           git checkout -b pr-automated-mariadb-12.1.2  
           git push -u origin pr-automated-mariadb-12.1.2
-
       - name: Create Pull Request
-        # if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -61,6 +34,6 @@ jobs:
             --repo CvH/LibreELEC.tv \
             --base master \
             --head pr-automated-mariadb-12.1.2 \
-            --title "mariadb: update to 12.1.2" \
+            --title "[:robot:] mariadb: update to 12.1.2" \
             --body "Automated update of MariaDB to version 12.1.2 using tools/update-pkg." \
             --label "bug"
