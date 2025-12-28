@@ -1,0 +1,29 @@
+name: Check for package update
+on:
+  workflow_dispatch:
+jobs:
+  check-package-update:
+    runs-on: ubuntu-latest
+
+    outputs:
+      package_name: ${{ steps.gen.outputs.package_name }}
+      package_version: ${{ steps.gen.outputs.package_version }}
+
+    steps:
+      - name: Check for package update
+        id: gen
+        run: |
+          echo "run some script and output variabvles"
+          # Example output
+          PACKAGE_NAME="mariadb"
+          PACKAGE_VERSION="12.1.2"
+
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+  call-other-workflow:
+    needs: check-package-update
+    uses: ./.github/workflows/update-package.yml
+    with:
+      PACKAGE_NAME: ${{ needs.check-package-update.outputs.package_name }}
+      PACKAGE_VERSION: ${{ needs.check-package-update.outputs.package_version }}

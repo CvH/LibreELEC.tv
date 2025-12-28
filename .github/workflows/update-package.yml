@@ -1,6 +1,13 @@
 name: Automated package update
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      PACKAGE_NAME:
+        required: true
+        type: string
+      PACKAGE_VERSION:
+        required: true
+        type: string
 jobs:
   automated-package-update:
     runs-on: ubuntu-latest
@@ -20,12 +27,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
       - name: Run update script
         run: |
+          echo "Running update for package..."
+          echo "Package Name: ${{ inputs.PACKAGE_NAME }}"
+          echo "Package Version: ${{ inputs.PACKAGE_VERSION }}"
           chmod +x tools/update-pkg
-          ./tools/update-pkg mariadb 12.1.2
+          ./tools/update-pkg ${{ inputs.PACKAGE_NAME }} ${{ inputs.PACKAGE_VERSION }}
       - name: Push branch
         run: |
-          git checkout -b pr-automated-mariadb-12.1.2  
-          git push -u origin pr-automated-mariadb-12.1.2
+          git checkout -b pr-automated-${{ inputs.PACKAGE_NAME }}-${{ inputs.PACKAGE_VERSION }}
+          git push -u origin pr-automated-${{ inputs.PACKAGE_NAME }}-${{ inputs.PACKAGE_VERSION }}
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,7 +43,7 @@ jobs:
           gh pr create \
             --repo CvH/LibreELEC.tv \
             --base master \
-            --head pr-automated-mariadb-12.1.2 \
-            --title "[ :robot: ] mariadb: update to 12.1.2" \
-            --body "Automated update of MariaDB to version 12.1.2 using tools/update-pkg." \
+            --head pr-automated-${{ inputs.PACKAGE_NAME }}-${{ inputs.PACKAGE_VERSION }} \
+            --title "[ :robot: ] ${{ inputs.PACKAGE_NAME }}: update to ${{ inputs.PACKAGE_VERSION }}" \
+            --body "Automated update of ${{ inputs.PACKAGE_NAME }} to version ${{ inputs.PACKAGE_VERSION }} using tools/update-pkg." \
             --label "bug"
