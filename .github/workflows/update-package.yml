@@ -1,8 +1,8 @@
-name: Automated MariaDB Update
+name: Automated package update
 on:
   workflow_dispatch:
 jobs:
-  update-mariadb:
+  automated-package-update:
     runs-on: ubuntu-latest
     # Hard stop if not running in the intended repository
     if: github.repository == 'CvH/LibreELEC.tv'
