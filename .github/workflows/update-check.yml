@@ -16,18 +16,16 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
       - name: Check for package update
         run: |
-          echo "run some script and output variables"
-          # Example output
-          generate_packages() {
-            echo "mariadb 12.1.1"
-            echo "mariadb 12.1.2"
-            echo "mariadb 12.3.0"
-          }
-
-          generate_packages | while read PACKAGE_NAME PACKAGE_VERSION; do
+          # run the update-scan script to get list of updated packages
+          updated_packages=$(bash tools/update-scan autoupdate=yes)
+          # debug output
+          echo "Updated packages:"
+          echo "$updated_packages"
+          echo "-----"
+          while read -r PACKAGE_NAME PACKAGE_VERSION; do
             echo "Triggering workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
 
             gh workflow run update-package.yml \
               -f PACKAGE_NAME="$PACKAGE_NAME" \
               -f PACKAGE_VERSION="$PACKAGE_VERSION"
-          done
+          done <<< "$updated_packages"
