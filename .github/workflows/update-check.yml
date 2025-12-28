@@ -4,26 +4,33 @@ on:
 jobs:
   check-package-update:
     runs-on: ubuntu-latest
-
-    outputs:
-      package_name: ${{ steps.gen.outputs.package_name }}
-      package_version: ${{ steps.gen.outputs.package_version }}
-
     steps:
-      - name: Check for package update
-        id: gen
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install GitHub CLI
         run: |
-          echo "run some script and output variabvles"
+          sudo apt-get update
+          sudo apt-get install -y gh
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Check for package update
+        run: |
+          echo "run some script and output variables"
           # Example output
-          PACKAGE_NAME="mariadb"
-          PACKAGE_VERSION="12.1.2"
+          generate_packages() {
+            echo "mariadb 12.1.1"
+            echo "mariadb 12.1.2"
+            echo "mariadb 12.3.0"
+          }
 
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
 
-  call-other-workflow:
-    needs: check-package-update
-    uses: ./.github/workflows/update-package.yml
-    with:
-      PACKAGE_NAME: ${{ needs.check-package-update.outputs.package_name }}
-      PACKAGE_VERSION: ${{ needs.check-package-update.outputs.package_version }}
+          generate_packages | while read PACKAGE_NAME PACKAGE_VERSION; do
+            echo "Triggering workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
+
+            gh workflow run update-package.yml \
+              -f PACKAGE_NAME="$PACKAGE_NAME" \
+              -f PACKAGE_VERSION="$PACKAGE_VERSION"
+          done

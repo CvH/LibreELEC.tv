@@ -1,6 +1,6 @@
 name: Automated package update
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       PACKAGE_NAME:
         required: true
