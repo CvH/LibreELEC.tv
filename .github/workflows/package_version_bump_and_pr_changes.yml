@@ -1,16 +1,18 @@
-name: Automated package update
+name: package version bump and pr changes
 on:
   workflow_dispatch:
     inputs:
       PACKAGE_NAME:
+        description: 'package name to update'
         required: true
         type: string
       PACKAGE_VERSION:
+        description: 'version to update to'
         required: true
         type: string
 jobs:
   automated-package-update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Hard stop if not running in the intended repository
     if: github.repository == 'CvH/LibreELEC.tv'
     permissions:
@@ -23,13 +25,13 @@ jobs:
           fetch-depth: 0
       - name: Configure git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "LibreELECBot"
+          git config user.email "LibreELECBot@users.noreply.github.com"
       - name: Run update script
         run: |
-          echo "Running update for package..."
-          echo "Package Name: ${{ inputs.PACKAGE_NAME }}"
-          echo "Package Version: ${{ inputs.PACKAGE_VERSION }}"
+          echo "running update for package..."
+          echo "package name: ${{ inputs.PACKAGE_NAME }}"
+          echo "package version: ${{ inputs.PACKAGE_VERSION }}"
           chmod +x tools/update-pkg
           ./tools/update-pkg ${{ inputs.PACKAGE_NAME }} ${{ inputs.PACKAGE_VERSION }}
       - name: Push branch
@@ -40,10 +42,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # get the LE base version
+          LE_VERSION=$(sed -nE 's/^[[:space:]]*OS_VERSION="([^"]+)".*/\1/p' distributions/LibreELEC/version)
+          # create the pr
           gh pr create \
             --repo CvH/LibreELEC.tv \
             --base master \
             --head pr-automated-${{ inputs.PACKAGE_NAME }}-${{ inputs.PACKAGE_VERSION }} \
-            --title "[ :robot: ] ${{ inputs.PACKAGE_NAME }}: update to ${{ inputs.PACKAGE_VERSION }}" \
+            --title "[LE${LE_VERSION}] ${{ inputs.PACKAGE_NAME }}: update to ${{ inputs.PACKAGE_VERSION }}" \
             --body "Automated update of ${{ inputs.PACKAGE_NAME }} to version ${{ inputs.PACKAGE_VERSION }} using tools/update-pkg." \
-            --label "bug"
+            --label "LE${LE_VERSION}" \
+            --label "UPDATE" \
+            --label "AUTOMATED"

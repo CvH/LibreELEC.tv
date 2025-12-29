@@ -1,9 +1,9 @@
-name: Check for package update
+name: check for package update and trigger update workflow
 on:
   workflow_dispatch:
 jobs:
   check-package-update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -19,13 +19,13 @@ jobs:
           # run the update-scan script to get list of updated packages
           updated_packages=$(bash tools/update-scan autoupdate=yes)
           # debug output
-          echo "Updated packages:"
+          echo "updated packages:"
           echo "$updated_packages"
           echo "-----"
           while read -r PACKAGE_NAME PACKAGE_VERSION; do
-            echo "Triggering workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
+            echo "Triggering update workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
 
-            gh workflow run update-package.yml \
+            gh workflow run package_version_bump_and_pr_changes.yml \
               -f PACKAGE_NAME="$PACKAGE_NAME" \
               -f PACKAGE_VERSION="$PACKAGE_VERSION"
           done <<< "$updated_packages"
