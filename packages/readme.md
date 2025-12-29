@@ -23,6 +23,7 @@ To control the build behaviour of your package, use variables in the top-down or
 | PKG_SECTION | -       | no  | virtual if the package only defines dependencies |
 | PKG_SHORTDESC | -     | no<br>yes&nbsp;for&nbsp;addons | Short description of the software package |
 | PKG_LONGDESC | -      | yes | Long description of the package including purpose or function within LibreELEC or Kodi |
+| PKG_AUTOUPDATE | -      | no | Allows package to autoupdate with CI |
 
 #### Universal Build Option
 | Variable    | Default | Required |Description |
