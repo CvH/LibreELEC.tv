@@ -8,6 +8,7 @@ PKG_SHA256="ecb603aa426a8b24665718667bda64a84c1504db7454ee4cadbd362eea64e545"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.freedesktop.org/wiki/Software/HarfBuzz"
 PKG_URL="https://github.com/harfbuzz/harfbuzz/releases/download/${PKG_VERSION}/harfbuzz-${PKG_VERSION}.tar.xz"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain cairo freetype glib"
 PKG_LONGDESC="HarfBuzz is an OpenType text shaping engine."
 

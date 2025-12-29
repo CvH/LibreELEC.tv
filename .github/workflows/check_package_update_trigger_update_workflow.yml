@@ -1,0 +1,37 @@
+name: check for package update and trigger update workflow
+on:
+  workflow_dispatch:
+jobs:
+  check-package-update:
+    runs-on: ubuntu-24.04
+    # Hard stop if not running in the intended repository
+    if: github.repository == 'CvH/LibreELEC.tv'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install GitHub CLI and deps
+        run: |
+          # check if jq and gh are installed
+          for cmd in gh jq; do
+            command -v "$cmd" >/dev/null 2>&1 || sudo apt-get update && sudo apt install -y "$cmd"
+          done
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Check for package update
+        run: |
+          # run the update-scan script to get list of updated packages
+          updated_packages=$(bash tools/update-scan autoupdate=yes)
+          # debug output
+          echo "updated packages:"
+          echo "$updated_packages"
+          echo "-----"
+          while read -r PACKAGE_NAME PACKAGE_VERSION; do
+            echo "Triggering update workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
+
+            gh workflow run package_version_bump_and_pr_changes.yml \
+              -f PACKAGE_NAME="$PACKAGE_NAME" \
+              -f PACKAGE_VERSION="$PACKAGE_VERSION"
+          done <<< "$updated_packages"
