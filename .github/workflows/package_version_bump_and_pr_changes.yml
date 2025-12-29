@@ -1,0 +1,87 @@
+name: package version bump and pr changes
+on:
+  workflow_dispatch:
+    inputs:
+      PACKAGE_NAME:
+        description: 'package name to update'
+        required: true
+        type: string
+      PACKAGE_VERSION:
+        description: 'version to update to'
+        required: true
+        type: string
+jobs:
+  automated-package-update:
+    runs-on: ubuntu-24.04
+    # Hard stop if not running in the intended repository
+    if: github.repository == 'LibreELEC/LibreELEC.tv'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Install GitHub CLI and deps
+        run: |
+          # check if jq and gh are installed
+          for cmd in gh jq; do
+            command -v "$cmd" >/dev/null 2>&1 || sudo apt-get update && sudo apt install -y "$cmd"
+          done
+      - name: Configure git
+        run: |
+          git config user.name "LibreELECBot"
+          git config user.email "LibreELECBot@users.noreply.github.com"
+      - name: Normalize version
+        run: |
+          # shorten the version if it is a git sha256 hash
+          # add a full version variable as well
+          PACKAGE_VERSION="${{ inputs.PACKAGE_VERSION }}"
+          PACKAGE_VERSION_FULL="${{ inputs.PACKAGE_VERSION }}"
+          if [[ "${PACKAGE_VERSION}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            # Git SHA-256 hash to short hash
+            PACKAGE_VERSION="${PACKAGE_VERSION:0:7}"
+          fi
+          # export vars and debug output
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION_FULL=${{ inputs.PACKAGE_VERSION }}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION: ${PACKAGE_VERSION}"
+          echo "PACKAGE_VERSION_FULL: ${PACKAGE_VERSION_FULL}"
+      - name: Run update script
+        run: |
+          echo "running update for package..."
+          echo "package name: ${{ inputs.PACKAGE_NAME }}"
+          echo "package version: ${PACKAGE_VERSION_FULL}"
+          chmod +x tools/update-pkg
+          ./tools/update-pkg ${{ inputs.PACKAGE_NAME }} ${PACKAGE_VERSION_FULL}
+      - name: Push branch
+        run: |
+          git checkout -b pr-automated-${{ inputs.PACKAGE_NAME }}-${PACKAGE_VERSION}
+          git push -u origin pr-automated-${{ inputs.PACKAGE_NAME }}-${PACKAGE_VERSION}
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # get the LE base version
+          LE_VERSION=$(sed -nE 's/^[[:space:]]*OS_VERSION="([^"]+)".*/\1/p' distributions/LibreELEC/version)
+          # create the pr
+          gh pr create \
+            --repo CvH/LibreELEC.tv \
+            --base master \
+            --head pr-automated-${{ inputs.PACKAGE_NAME }}-${PACKAGE_VERSION} \
+            --title "[LE${LE_VERSION}] ${{ inputs.PACKAGE_NAME }}: update to ${PACKAGE_VERSION}" \
+            --body "Automated update of ${{ inputs.PACKAGE_NAME }} to version ${PACKAGE_VERSION} using tools/update-pkg." \
+            --label "LE${LE_VERSION}" \
+            --label "UPDATE" \
+            --label "AUTOMATED"
+      - name: Test run output
+        run: |
+          # testrun output, no changes pushed or PR created
+          LE_VERSION=$(sed -nE 's/^[[:space:]]*OS_VERSION="([^"]+)".*/\1/p' distributions/LibreELEC/version)
+           echo "create a PR"
+           echo "branch name: pr-automated-${{ inputs.PACKAGE_NAME }}-${PACKAGE_VERSION}"
+           echo "title: [LE${LE_VERSION}] ${{ inputs.PACKAGE_NAME }}: update to ${PACKAGE_VERSION}"
+           echo "summary: Automated update of ${{ inputs.PACKAGE_NAME }} to version ${PACKAGE_VERSION} using tools/update-pkg."
+           echo "label: LE${LE_VERSION}"
+
