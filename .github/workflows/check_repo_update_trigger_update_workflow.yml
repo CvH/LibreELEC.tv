@@ -1,0 +1,61 @@
+name: check for repo update and trigger update workflow
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "select a repository"
+        required: true
+        type: choice
+        options:
+          - LibreELEC/amlogic-boot-fip
+          - LibreELEC/brcmfmac_sdio-firmware
+          - LibreELEC/iwlwifi-firmware
+          - LibreELEC/misc-firmware
+          - LibreELEC/service.libreelec.settings
+          - LibreELEC/wlan-firmware
+jobs:
+  fetch-latest-commit:
+    runs-on: ubuntu-24.04
+    # Hard stop if not running in the intended repository
+    if: github.repository == 'CvH/LibreELEC.tv'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install GitHub CLI
+        run: |
+          # check if jq and gh are installed
+          for cmd in gh jq; do
+            command -v "$cmd" >/dev/null 2>&1 || sudo apt-get update && sudo apt install -y "$cmd"
+          done
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Get latest commit hash from the repository
+        env:
+          REPO: ${{ github.event.inputs.repository }}
+        run: |
+          echo "Selected repo: $REPO"
+          REPO_NAME=$(echo "$REPO" | cut -d'/' -f2)
+
+          # query GitHub API for latest commit hash
+          LATEST_HASH=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/commits" \
+            | jq -r '.[0].sha')
+          # if repo name is not package name, map it accordingly
+          case "$REPO" in
+            "LibreELEC/service.libreelec.settings")
+              REPO_NAME="LibreELEC-settings"
+              ;;
+          esac
+          echo "PACKAGE_NAME=$REPO_NAME" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=$LATEST_HASH" >> $GITHUB_ENV
+      - name: Check for package update
+        run: |
+          # debug output
+          echo "PACKAGE_NAME: $PACKAGE_NAME"
+          echo "PACKAGE_VERSION: $PACKAGE_VERSION"
+          echo "-----"
+          gh workflow run package_version_bump_and_pr_changes.yml \
+            -f PACKAGE_NAME="$PACKAGE_NAME" \
+            -f PACKAGE_VERSION="$PACKAGE_VERSION"
