@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Install GitHub CLI and deps
         run: |
           # check if jq and gh are installed

@@ -1,6 +1,12 @@
 name: check for package update and trigger update workflow
 on:
   workflow_dispatch:
+    inputs:
+      TEST_RUN:
+        description: 'just do a test run'
+        required: true
+        type: boolean
+        default: true
 jobs:
   check-package-update:
     runs-on: ubuntu-24.04
@@ -10,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Install GitHub CLI and deps
         run: |
           # check if jq and gh are installed
@@ -28,10 +34,11 @@ jobs:
           echo "updated packages:"
           echo "$updated_packages"
           echo "-----"
-          while read -r PACKAGE_NAME PACKAGE_VERSION; do
-            echo "Triggering update workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
-
-            gh workflow run package_version_bump_and_pr_changes.yml \
-              -f PACKAGE_NAME="$PACKAGE_NAME" \
-              -f PACKAGE_VERSION="$PACKAGE_VERSION"
-          done <<< "$updated_packages"
+          if [ "${{ github.event.inputs.TEST_RUN }}" = "false" ]; then
+            while read -r PACKAGE_NAME PACKAGE_VERSION; do
+              echo "Triggering update workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
+              gh workflow run package_version_bump_and_pr_changes.yml \
+                -f PACKAGE_NAME="$PACKAGE_NAME" \
+                -f PACKAGE_VERSION="$PACKAGE_VERSION"
+            done <<< "$updated_packages"
+          fi

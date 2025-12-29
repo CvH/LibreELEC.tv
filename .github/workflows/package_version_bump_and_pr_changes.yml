@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Install GitHub CLI and deps
         run: |
           # check if jq and gh are installed
@@ -75,3 +75,13 @@ jobs:
             --label "LE${LE_VERSION}" \
             --label "UPDATE" \
             --label "AUTOMATED"
+      - name: Test run output
+        run: |
+          # testrun output, no changes pushed or PR created
+          LE_VERSION=$(sed -nE 's/^[[:space:]]*OS_VERSION="([^"]+)".*/\1/p' distributions/LibreELEC/version)
+           echo "create a PR"
+           echo "branch name: pr-automated-${{ inputs.PACKAGE_NAME }}-${PACKAGE_VERSION}"
+           echo "title: [LE${LE_VERSION}] ${{ inputs.PACKAGE_NAME }}: update to ${PACKAGE_VERSION}"
+           echo "summary: Automated update of ${{ inputs.PACKAGE_NAME }} to version ${PACKAGE_VERSION} using tools/update-pkg."
+           echo "label: LE${LE_VERSION}"
+
