@@ -17,7 +17,7 @@ jobs:
   fetch-latest-commit:
     runs-on: ubuntu-24.04
     # Hard stop if not running in the intended repository
-    if: github.repository == 'LibreELEC/LibreELEC.tv'
+    if: github.repository == 'CvH/LibreELEC.tv'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
