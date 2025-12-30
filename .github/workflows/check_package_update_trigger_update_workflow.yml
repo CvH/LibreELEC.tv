@@ -12,21 +12,17 @@ jobs:
     runs-on: ubuntu-24.04
     # Hard stop if not running in the intended repository
     if: github.repository == 'CvH/LibreELEC.tv'
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-      - name: Install GitHub CLI and deps
-        run: |
-          # check if jq and gh are installed
-          for cmd in gh jq; do
-            command -v "$cmd" >/dev/null 2>&1 || sudo apt-get update && sudo apt install -y "$cmd"
-          done
-      - name: Authenticate GitHub CLI
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          repository: ${{ github.repository_owner }}/LibreELEC.tv
       - name: Check for package update
+        id: set-matrix
+        shell: bash
         run: |
           # run the update-scan script to get list of updated packages
           updated_packages=$(bash tools/update-scan autoupdate=yes)
@@ -34,11 +30,32 @@ jobs:
           echo "updated packages:"
           echo "$updated_packages"
           echo "-----"
-          if [ "${{ github.event.inputs.TEST_RUN }}" = "false" ]; then
-            while read -r PACKAGE_NAME PACKAGE_VERSION; do
-              echo "Triggering update workflow for $PACKAGE_NAME:$PACKAGE_VERSION"
-              gh workflow run package_version_bump_and_pr_changes.yml \
-                -f PACKAGE_NAME="$PACKAGE_NAME" \
-                -f PACKAGE_VERSION="$PACKAGE_VERSION"
-            done <<< "$updated_packages"
-          fi
+          pairs=$(while read -r PACKAGE_NAME PACKAGE_VERSION; do
+                    echo "$PACKAGE_NAME:$PACKAGE_VERSION"
+                  done <<< "$updated_packages")
+          echo "matrix=$(echo $pairs | jq -R -s -c 'split(" ")')" >> $GITHUB_OUTPUT
+  call-package-update:
+    if: ${{ github.event.inputs.TEST_RUN == 'false' }}
+    needs: check-package-update
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        manifest: ${{ fromJson(needs.check-package-update.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          repository: ${{ github.repository_owner }}/actions
+      - name: Export vars and debug output
+        run: |
+          # export vars and debug output
+          IFS=":" read -r -a array <<< "${{ matrix.manifest }}"
+          echo "PACKAGE_NAME=${array[0]}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=${array[1]}" >> $GITHUB_ENV
+      - name: Call composite function
+        uses: ./.github/actions/package_version_bump_and_pr_changes
+        with:
+          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
+          repository_owner: ${{ github.repository_owner }}
