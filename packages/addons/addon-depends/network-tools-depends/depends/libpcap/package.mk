@@ -7,6 +7,7 @@ PKG_SHA256="37ced90a19a302a7f32e458224a00c365c117905c2cd35ac544b6880a81488f0"
 PKG_LICENSE="GPL"
 PKG_SITE="https://www.tcpdump.org/"
 PKG_URL="https://www.tcpdump.org/release/libpcap-${PKG_VERSION}.tar.gz"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_LONGDESC="A portable framework for low-level network monitoring."
 # use configure, not cmake. review cmake in future release.
