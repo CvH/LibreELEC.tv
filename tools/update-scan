@@ -145,7 +145,7 @@ check_for_update() {
   fi
 
   # print version output line
-  if [ auto_update="yes" ] && [ "${PKG_VERSION}" != "${upstream_version}" ]; then
+  if [[ "$auto_update" == "yes" ]] && [ "${PKG_VERSION}" != "${upstream_version}" ]; then
     echo "${PKG_NAME} ${upstream_version}"
   elif [ ! -z "${API}" ]; then
     printf "%s %s %s" "${PKG_NAME}" "${PKG_VERSION}" "${upstream_version}"
@@ -159,7 +159,7 @@ check_for_update() {
 }
 
 # create list of packages
-if [ auto_update="yes" ]; then
+if [[ "$auto_update" == "yes" ]]; then
   PACKAGE_LIST="$(
     find packages/ -type f -name "package.mk" \
       -exec grep -l 'PKG_AUTOUPDATE="yes"' {} + |
@@ -181,7 +181,7 @@ else
   )"
 fi
 
-if [ auto_update="yes" ]; then
+if [[ "$auto_update" == "yes" ]]; then
   for check_version in ${PACKAGE_LIST}; do
     check_for_update "${check_version}"
   done
