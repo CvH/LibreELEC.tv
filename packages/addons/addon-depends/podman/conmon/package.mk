@@ -7,6 +7,7 @@ PKG_SHA256="350992cb2fe4a69c0caddcade67be20462b21b4078dae00750e8da1774926d60"
 PKG_LICENSE="Apache-2.0"
 PKG_SITE="https://github.com/containers/conmon"
 PKG_URL="https://github.com/containers/conmon/archive/v${PKG_VERSION}.tar.gz"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain glib libseccomp systemd"
 PKG_LONGDESC="An OCI container runtime monitor"
 

@@ -5,6 +5,7 @@ PKG_NAME="docker-compose"
 PKG_VERSION="5.0.1"
 PKG_LICENSE="Apache-2.0"
 PKG_SITE="https://github.com/docker/compose"
+PKG_AUTOUPDATE="yes"
 PKG_LONGDESC="Define and run multi-container applications with Docker."
 PKG_TOOLCHAIN="manual"
 

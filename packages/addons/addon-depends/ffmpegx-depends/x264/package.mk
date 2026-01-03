@@ -7,6 +7,7 @@ PKG_SHA256="f05c59f2e83d494c36307025dca2d3afc6b4d185f3a3453d06cc4fecd7094057"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.videolan.org/developers/x264.html"
 PKG_URL="https://code.videolan.org/videolan/x264/-/archive/${PKG_VERSION}/x264-${PKG_VERSION}.tar.bz2"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_LONGDESC="x264 codec"
 

@@ -5,6 +5,7 @@ PKG_NAME="rust-std-snapshot"
 PKG_VERSION="$(get_pkg_version rust)"
 PKG_LICENSE="MIT"
 PKG_SITE="https://www.rust-lang.org"
+PKG_AUTOUPDATE="yes"
 PKG_LONGDESC="rust std library bootstrap package"
 PKG_TOOLCHAIN="manual"
 

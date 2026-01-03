@@ -5,6 +5,7 @@ PKG_NAME="cargo-snapshot"
 PKG_VERSION="$(get_pkg_version rust)"
 PKG_LICENSE="MIT"
 PKG_SITE="https://www.rust-lang.org"
+PKG_AUTOUPDATE="yes"
 PKG_LONGDESC="cargo bootstrap package"
 PKG_TOOLCHAIN="manual"
 

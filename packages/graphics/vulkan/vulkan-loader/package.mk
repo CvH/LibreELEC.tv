@@ -8,6 +8,7 @@ PKG_SHA256="54190037642f503e6e2c0b6e1f6e8c6647dcab55c469bd067ba285eb35472ed1"
 PKG_LICENSE="Apache-2.0"
 PKG_SITE="https://github.com/KhronosGroup/Vulkan-Loader"
 PKG_URL="https://github.com/KhronosGroup/Vulkan-Loader/archive/v${PKG_VERSION}.tar.gz"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain Python3:host vulkan-headers"
 PKG_LONGDESC="Vulkan Installable Client Driver (ICD) Loader."
 

@@ -9,6 +9,7 @@ PKG_REV="1"
 PKG_ARCH="x86_64"
 PKG_LICENSE="Custom"
 PKG_SITE="http://www.google.com/chrome"
+PKG_AUTOUPDATE="yes"
 PKG_DEPENDS_TARGET="toolchain at-spi2-core atk cairo chrome-libXcomposite \
                     chrome-libXdamage chrome-libXfixes chrome-libXi chrome-libXrender \
                     chrome-libXtst chrome-libxcb chrome-libxkbcommon chrome-libxshmfence cups \

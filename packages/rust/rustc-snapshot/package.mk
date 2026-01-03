@@ -5,6 +5,7 @@ PKG_NAME="rustc-snapshot"
 PKG_VERSION="$(get_pkg_version rust)"
 PKG_LICENSE="MIT"
 PKG_SITE="https://www.rust-lang.org"
+PKG_AUTOUPDATE="yes"
 PKG_LONGDESC="rustc bootstrap compiler"
 PKG_TOOLCHAIN="manual"
 
