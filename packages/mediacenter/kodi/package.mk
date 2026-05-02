@@ -14,6 +14,10 @@ PKG_DEPENDS_HOST="toolchain"
 PKG_LONGDESC="A free and open source cross-platform media player."
 PKG_BUILD_FLAGS="+speed"
 
+if [ "${TARGET_ARCH}" = "arm" ]; then
+  PKG_BUILD_FLAGS+=" -gold"
+fi
+
 configure_package() {
   # Single threaded LTO is very slow so rely on Kodi for parallel LTO support
   if [ "${LTO_SUPPORT}" = "yes" ] && ! build_with_debug; then
@@ -313,6 +317,9 @@ makeinstall_host() {
 
 pre_configure_target() {
   export LIBS="${LIBS} -lncurses"
+  if [ "${TARGET_ARCH}" = "arm" ]; then
+    LDFLAGS+=" -Wl,--allow-shlib-undefined"
+  fi
 }
 
 post_makeinstall_target() {
