@@ -1,6 +1,6 @@
 # Verify `scripts/unpack` for packages touched by a PR under packages/**.
 #
-# Runs in Linux via the LibreELEC noble Docker image (see tools/docker/noble).
+# Runs on ubuntu-latest with PROJECT=Generic ARCH=x86_64.
 #
 # Fork PR caveat: For pull requests from forks, GitHub may restrict what the
 # default GITHUB_TOKEN can update on the base repo. If posting/updating the PR
@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout PR head
         id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -82,11 +82,13 @@ jobs:
           } > unpack-report.md
           cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Build Docker image and unpack packages
+      - name: Unpack packages
         id: unpack
         if: steps.list.outputs.has_pkgs == 'true'
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PROJECT: Generic
+          ARCH: x86_64
         run: |
           set -uo pipefail
           {
@@ -98,27 +100,13 @@ jobs:
             echo "|---------|--------|"
           } > unpack-report.md
 
-          echo "::group::docker build"
-          if ! docker build --pull -t le-ci:local -f tools/docker/noble/Dockerfile tools/docker/noble; then
-            echo "::endgroup::"
-            echo "" >> unpack-report.md
-            echo "**Docker build failed.** See the workflow log for details." >> unpack-report.md
-            cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
-            exit 1
-          fi
-          echo "::endgroup::"
-
           FAILED=0
           while IFS= read -r pkg || [[ -n "${pkg}" ]]; do
             [[ -z "${pkg}" ]] && continue
             echo "::group::unpack ${pkg}"
             LOG="${RUNNER_TEMP}/unpack-${pkg//[^a-zA-Z0-9._-]/_}.log"
             set +e
-            docker run --rm --user root \
-              -v "${GITHUB_WORKSPACE}:/build" -w /build \
-              -e PROJECT=Generic -e ARCH=x86_64 \
-              le-ci:local \
-              bash -lc "./scripts/unpack $(printf '%q' "${pkg}")" 2>&1 | tee "${LOG}"
+            ./scripts/unpack "${pkg}" 2>&1 | tee "${LOG}"
             rc="${PIPESTATUS[0]}"
             set -u
             echo "::endgroup::"
