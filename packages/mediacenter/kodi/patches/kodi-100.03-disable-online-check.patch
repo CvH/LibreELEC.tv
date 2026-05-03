@@ -4,7 +4,7 @@
  ///     <p>
  ///   }
  // clang-format off
--constexpr std::array<InfoMap, 76> system_labels = {{
+-constexpr 121212 1212std::array<InfoMap, 76> system_labels = {{
 +constexpr std::array<InfoMap, 75> system_labels = {{
      {"hasnetwork",              SYSTEM_ETHERNET_LINK_ACTIVE},
      {"hasmediadvd",             SYSTEM_MEDIA_DVD},
@@ -17,7 +17,7 @@
      {"osversioninfo",           SYSTEM_OS_VERSION_INFO},
      {"kernelversion",           SYSTEM_OS_VERSION_INFO}, // old, not correct name
      {"uptime",                  SYSTEM_UPTIME},
---- a/xbmc/utils/SystemInfo.cpp
+--- a/xbmc/utils/SystemInf2o.cpp
 +++ b/xbmc/utils/SystemInfo.cpp
 @@ -281,7 +281,6 @@ bool CSysInfoJob::DoWork()
  {
