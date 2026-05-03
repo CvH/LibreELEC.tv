@@ -1,0 +1,188 @@
+# Verify `scripts/unpack` for packages touched by a PR under packages/**.
+#
+# Runs in Linux via the LibreELEC noble Docker image (see tools/docker/noble).
+#
+# Fork PR caveat: For pull requests from forks, GitHub may restrict what the
+# default GITHUB_TOKEN can update on the base repo. If posting/updating the PR
+# comment fails, open the workflow run: the job summary still lists results and
+# the check still reflects unpack success or failure. A stricter alternative is
+# pull_request_target with a narrowly scoped checkout and reviewed automation;
+# that pattern is not enabled here because it runs untrusted code with elevated
+# token rights unless carefully isolated.
+
+name: PR package unpack
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'packages/**'
+
+concurrency:
+  group: pr-unpack-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch base commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            exit 0
+          fi
+          git fetch --no-tags --depth=50 \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" \
+            "${BASE_SHA}"
+
+      - name: List touched packages
+        id: list
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          bash scripts/ci/list-pr-packages.sh "${BASE_SHA}" "${HEAD_SHA}" > pkgs.txt
+          if [[ ! -s pkgs.txt ]]; then
+            echo "has_pkgs=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_pkgs=true" >> "${GITHUB_OUTPUT}"
+            echo "count=$(wc -l < pkgs.txt | tr -d ' ')" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Report no package.mk directories
+        id: noreport
+        if: steps.list.outputs.has_pkgs != 'true'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          {
+            echo '## Package unpack'
+            echo ''
+            echo "Workflow run: [${RUN_URL}](${RUN_URL})"
+            echo ''
+            echo 'Changed paths under `packages/` do not resolve to any directory containing `package.mk`.'
+          } > unpack-report.md
+          cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Build Docker image and unpack packages
+        id: unpack
+        if: steps.list.outputs.has_pkgs == 'true'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          {
+            echo "## Package unpack"
+            echo ""
+            echo "Workflow run: [${RUN_URL}](${RUN_URL})"
+            echo ""
+            echo "| Package | Status |"
+            echo "|---------|--------|"
+          } > unpack-report.md
+
+          echo "::group::docker build"
+          if ! docker build --pull -t le-ci:local -f tools/docker/noble/Dockerfile tools/docker/noble; then
+            echo "::endgroup::"
+            echo "" >> unpack-report.md
+            echo "**Docker build failed.** See the workflow log for details." >> unpack-report.md
+            cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+          FAILED=0
+          while IFS= read -r pkg || [[ -n "${pkg}" ]]; do
+            [[ -z "${pkg}" ]] && continue
+            echo "::group::unpack ${pkg}"
+            LOG="${RUNNER_TEMP}/unpack-${pkg//[^a-zA-Z0-9._-]/_}.log"
+            set +e
+            docker run --rm --user root \
+              -v "${GITHUB_WORKSPACE}:/build" -w /build \
+              -e PROJECT=Generic -e ARCH=x86_64 \
+              le-ci:local \
+              bash -lc "./scripts/unpack $(printf '%q' "${pkg}")" 2>&1 | tee "${LOG}"
+            rc="${PIPESTATUS[0]}"
+            set -u
+            echo "::endgroup::"
+            if [[ "${rc}" -eq 0 ]]; then
+              echo "| \`${pkg}\` | Passed |" >> unpack-report.md
+            else
+              FAILED=1
+              echo "| \`${pkg}\` | **Failed** |" >> unpack-report.md
+              {
+                echo ""
+                echo "<details><summary>Log excerpt: \`${pkg}\`</summary>"
+                echo ""
+                echo '```'
+                tail -n 50 "${LOG}"
+                echo '```'
+                echo ""
+                echo "</details>"
+              } >> unpack-report.md
+            fi
+          done < pkgs.txt
+
+          cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
+          exit "${FAILED}"
+
+      - name: Comment on pull request
+        if: always() && steps.list.conclusion == 'success'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- le-unpack-ci -->';
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            let body;
+            try {
+              body = fs.readFileSync('unpack-report.md', 'utf8');
+            } catch (e) {
+              body = '_Could not read unpack-report.md._';
+            }
+            let full = `${marker}\n${body}\n\n----\n_Updated from workflow [${runUrl}](${runUrl})._`;
+            if (full.length > 64000) {
+              full = full.slice(0, 63000) + '\n\n_(truncated for GitHub comment limit)_';
+            }
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: full,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                body: full,
+              });
+            }
