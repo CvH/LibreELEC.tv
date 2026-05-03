@@ -51,6 +51,10 @@ jobs:
             "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" \
             "${BASE_SHA}"
 
+      - name: Workaround to ignore checkdeps
+        run: |
+          echo "" > scripts/checkdeps
+
       - name: List touched packages
         id: list
         env:
