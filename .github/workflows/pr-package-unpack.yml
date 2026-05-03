@@ -100,37 +100,77 @@ jobs:
             echo ""
             echo "Workflow run: [${RUN_URL}](${RUN_URL})"
             echo ""
-            echo "| Package | Status |"
-            echo "|---------|--------|"
           } > unpack-report.md
+
+          PASSED_LIST="${RUNNER_TEMP}/unpack-passed.list"
+          FAILED_LIST="${RUNNER_TEMP}/unpack-failed.list"
+          : > "${PASSED_LIST}"
+          : > "${FAILED_LIST}"
 
           FAILED=0
           while IFS= read -r pkg || [[ -n "${pkg}" ]]; do
             [[ -z "${pkg}" ]] && continue
             echo "::group::unpack ${pkg}"
-            LOG="${RUNNER_TEMP}/unpack-${pkg//[^a-zA-Z0-9._-]/_}.log"
+            safe="${pkg//[^a-zA-Z0-9._-]/_}"
+            LOG="${RUNNER_TEMP}/unpack-${safe}.log"
             set +e
             ./scripts/unpack "${pkg}" 2>&1 | tee "${LOG}"
             rc="${PIPESTATUS[0]}"
             set -u
             echo "::endgroup::"
             if [[ "${rc}" -eq 0 ]]; then
-              echo "| \`${pkg}\` | Passed |" >> unpack-report.md
+              echo "${pkg}" >> "${PASSED_LIST}"
             else
               FAILED=1
-              echo "| \`${pkg}\` | **Failed** |" >> unpack-report.md
-              {
-                echo ""
+              echo "${pkg}" >> "${FAILED_LIST}"
+              tail -n 50 "${LOG}" > "${RUNNER_TEMP}/unpack-excerpt-${safe}.txt"
+            fi
+          done < pkgs.txt
+
+          nf=$(wc -l < "${FAILED_LIST}" | tr -d ' ')
+          np=$(wc -l < "${PASSED_LIST}" | tr -d ' ')
+
+          {
+            echo "### Results"
+            echo ""
+            if [[ "${nf}" -gt 0 ]]; then
+              echo "**Not working (${nf})**"
+              echo ""
+              while IFS= read -r p || [[ -n "${p}" ]]; do
+                [[ -z "${p}" ]] && continue
+                echo "- ❌ \`${p}\`"
+              done < "${FAILED_LIST}"
+              echo ""
+            fi
+            if [[ "${np}" -gt 0 ]]; then
+              echo "**Working (${np})**"
+              echo ""
+              while IFS= read -r p || [[ -n "${p}" ]]; do
+                [[ -z "${p}" ]] && continue
+                echo "- ✅ \`${p}\`"
+              done < "${PASSED_LIST}"
+              echo ""
+            fi
+          } >> unpack-report.md
+
+          if [[ "${nf}" -gt 0 ]]; then
+            {
+              echo "### Log excerpts (failed packages)"
+              echo ""
+              while IFS= read -r pkg || [[ -n "${pkg}" ]]; do
+                [[ -z "${pkg}" ]] && continue
+                safe="${pkg//[^a-zA-Z0-9._-]/_}"
                 echo "<details><summary>Log excerpt: \`${pkg}\`</summary>"
                 echo ""
                 echo '```'
-                tail -n 50 "${LOG}"
+                cat "${RUNNER_TEMP}/unpack-excerpt-${safe}.txt"
                 echo '```'
                 echo ""
                 echo "</details>"
-              } >> unpack-report.md
-            fi
-          done < pkgs.txt
+                echo ""
+              done < "${FAILED_LIST}"
+            } >> unpack-report.md
+          fi
 
           cat unpack-report.md >> "${GITHUB_STEP_SUMMARY}"
           exit "${FAILED}"
