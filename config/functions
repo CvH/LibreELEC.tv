@@ -1532,7 +1532,8 @@ install_addon_images() {
 
   if [ -f "$PKG_DIR/icon/icon.png" ]; then
     mkdir -p "$dest_dir/resources"
-    cp "$PKG_DIR/icon/icon.png" "$dest_dir/resources"
+    export ICON_PATH_BUILDTIME="$ADDON_DIRECTORY"
+    ${SCRIPTS}/genicon ${PKG_NAME} install_addon
   fi
 
   if [ -f "$DISTRO_DIR/$DISTRO/addons/fanart.png" ]; then
