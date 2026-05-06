@@ -1530,7 +1530,7 @@ install_addon_source() {
 install_addon_images() {
   local dest_dir="$1"
 
-  if [ -f "$PKG_DIR/icon/icon.png" ]; then
+  if [[ -f "$PKG_DIR/icon/icon.png" || -f "$PKG_DIR/icon/icon.svg" ]]; then
     mkdir -p "$dest_dir/resources"
     export ICON_PATH_BUILDTIME="$ADDON_DIRECTORY"
     ${SCRIPTS}/genicon ${PKG_NAME} install_addon
