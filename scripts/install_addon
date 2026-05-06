@@ -53,7 +53,8 @@ if [ -f ${ADDON_BUILD}/${PKG_ADDON_ID}/changelog.txt ]; then
   cp ${ADDON_BUILD}/${PKG_ADDON_ID}/changelog.txt ${ADDON_INSTALL_DIR}/changelog-${ADDONVER}.txt
 fi
 if [ -f ${ADDON_BUILD}/${PKG_ADDON_ID}/resources/icon.png ]; then
-  ${SCRIPTS}/install_addon ${PKG_NAME}
+  mkdir -p ${ADDON_INSTALL_DIR}/resources
+  cp ${ADDON_BUILD}/${PKG_ADDON_ID}/resources/icon.png ${ADDON_INSTALL_DIR}/resources/icon.png
 fi
 
 # workaround for kodi pvr addons
