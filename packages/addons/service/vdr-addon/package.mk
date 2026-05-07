@@ -21,6 +21,8 @@ PKG_TOOLCHAIN="manual"
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="VDR PVR Backend"
 PKG_ADDON_TYPE="xbmc.service"
+PKG_ADDON_ICON_NAME="VDR"
+PKG_ADDON_ICON_SIZE="300"
 PKG_ADDON_REQUIRES="pvr.vdr.vnsi:0.0.0 script.config.vdr:0.0.0"
 
 addon() {
