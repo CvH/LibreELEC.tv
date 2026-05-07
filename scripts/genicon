@@ -16,9 +16,11 @@ WORK_DIR="${PKG_DIR}/icon"
 IMG_DIR="$DISTRO_DIR/$DISTRO/addons"
 ADDON_INSTALL_DIR="${TARGET_IMG}/${ADDONS}/${ADDON_VERSION}/${DEVICE:-${PROJECT}}/${TARGET_ARCH}/${PKG_ADDON_ID}"
 
-# Determine icon name
-if [ -n "$PKG_ADDON_ICON_NAME" ]; then
+# Determine icon name, if "none" dont add text
+if [ -n "$PKG_ADDON_ICON_NAME" ] && [ "$PKG_ADDON_ICON_NAME" != "none" ]; then
   ICON_NAME="$PKG_ADDON_ICON_NAME"
+elif [ "$PKG_ADDON_ICON_NAME" = "none" ]; then
+  ICON_NAME=""
 else
   ICON_NAME="$PKG_ADDON_NAME"
 fi
@@ -69,7 +71,7 @@ mkdir -p "${ADDON_INSTALL_DIR}/resources"
 # Compose final image
 convert_args=(
   "${IMG_DIR}/addon-bg.png"
-  "$TMP_ICON" -gravity center -geometry "+0-${PKG_ADDON_ICON_OFFSET:-36}" -composite
+  "$TMP_ICON" -gravity center -geometry "+0${PKG_ADDON_ICON_OFFSET:--36}" -composite
 )
 
 if [ "$ICON_OVERLAY" = "yes" ]; then
