@@ -30,15 +30,13 @@ if [[ "$PKG_DIR" == *"packages/addons/flatpak"* ]]; then
 fi
 
 # Create temp files
-TMP_ICON=$(mktemp)
-TMP_OVERLAY=$(mktemp)
-TMP_SHADOW=$(mktemp)
+TMP_ICON=$(mktemp --suffix=.png)
+TMP_OVERLAY=$(mktemp --suffix=.png)
+TMP_SHADOW=$(mktemp --suffix=.png)
 
-# icon svg to png convert
+# icon use svg or png
 if [ -f "${WORK_DIR}/icon.svg" ]; then
-  SRC_ICON=$(mktemp --suffix=.png)
-  # rsvg-convert resize has bad quality, so we convert to png first and then use convert to resize
-  rsvg-convert -w 1500 -h 1500 "${WORK_DIR}/icon.svg" -o "$SRC_ICON"
+  SRC_ICON="${WORK_DIR}/icon.svg"
 elif [ -f "${WORK_DIR}/icon.png" ]; then
   SRC_ICON="${WORK_DIR}/icon.png"
 else
@@ -46,7 +44,7 @@ else
 fi
 
 # icon resize
-convert -background none -density 300 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}!" "$TMP_ICON"
+convert -background none -density 900 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}" "$TMP_ICON"
 
 # icon create drop shadow
 convert "$TMP_ICON" \
