@@ -16,6 +16,7 @@ PKG_TOOLCHAIN="manual"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="FFmpeg Tools"
+PKG_ADDON_ICON_NAME="Tools"
 PKG_ADDON_TYPE="xbmc.python.script"
 
 addon() {
