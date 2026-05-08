@@ -38,7 +38,9 @@ TMP_SHADOW=$(mktemp --suffix=.png)
 
 # icon use svg or png
 if [ -f "${WORK_DIR}/icon-source.svg" ]; then
-  SRC_ICON="${WORK_DIR}/icon-source.svg"
+  SRC_ICON=$(mktemp --suffix=.png)
+  # rsvg-convert resize has bad quality, so we convert to png first and then use convert to resize
+  rsvg-convert -w 1500 "${WORK_DIR}/icon-source.svg" -o "$SRC_ICON"
 elif [ -f "${WORK_DIR}/icon-source.png" ]; then
   SRC_ICON="${WORK_DIR}/icon-source.png"
 else
@@ -46,7 +48,7 @@ else
 fi
 
 # icon resize
-convert -background none -density 900 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}" "$TMP_ICON"
+convert -background none -density 300 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}" "$TMP_ICON"
 
 # icon create drop shadow
 convert "$TMP_ICON" \
@@ -76,7 +78,7 @@ convert_args=(
 
 if [ "$ICON_OVERLAY" = "yes" ]; then
   convert_args+=(
-    "$TMP_SHADOW" -gravity southeast -geometry +55+105 -composite
+    "$TMP_SHADOW" -gravity southeast -geometry +55${PKG_ADDON_ICON_OVERLAY_OFFSET:-+105} -composite
   )
 fi
 
