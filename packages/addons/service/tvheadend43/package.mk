@@ -20,6 +20,7 @@ PKG_BUILD_FLAGS="-sysroot"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="Tvheadend Server 4.3"
+PKG_ADDON_ICON_NAME="Tvheadend"
 PKG_ADDON_TYPE="xbmc.service"
 
 # basic transcoding options

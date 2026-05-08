@@ -19,6 +19,8 @@ PKG_BUILD_FLAGS="-sysroot"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="BTRFS Tools"
+PKG_ADDON_ICON_NAME="Tools"
+PKG_ADDON_ICON_SIZE="300"
 PKG_ADDON_TYPE="xbmc.python.script"
 
 PKG_CONFIGURE_OPTS_TARGET="--disable-backtrace \
