@@ -2,6 +2,27 @@
 
 LibreELEC is a 'Just enough OS' Linux distribution for the award-winning [Kodi](https://kodi.tv) software on popular mediacentre hardware. Further information on the project can be found on the [LibreELEC website](https://libreelec.tv).
 
+**Build Quickstart**
+
+Builds are driven by `scripts/image` and the top-level `Makefile` targets.
+
+1. Install host build dependencies (Linux build host recommended).
+2. Select the target project/device in your shell environment.
+3. Run one of the build targets:
+   - `make release` (default release artifacts)
+   - `make image` (disk image generation flow)
+   - `make noobs` (NOOBS release packaging)
+4. Find outputs under `target/` after a successful build.
+
+Typical command flow:
+
+```bash
+# example target selection; adjust for your hardware
+PROJECT=RPi DEVICE=RPi4 ARCH=arm make release
+```
+
+For a detailed build reference (host requirements, variables, and target behavior), see [`docs/build.md`](docs/build.md).
+
 **Issues & Support**
 
 Please ask questions in the [LibreELEC forum: Help & Support](https://forum.libreelec.tv/forum-3.html) or ask a member of project staff in the #libreelec IRC channel on Libera.Chat. Please report bugs via [GitHub Issues](https://github.com/LibreELEC/LibreELEC.tv/issues).

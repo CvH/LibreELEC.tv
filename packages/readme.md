@@ -295,7 +295,7 @@ Issue | Level | Meaning |
     * do not place it in an existing package (directory that includes a `package.mk`)
     * when you found a place, create a directory with the name of your package (use same value for `PKG_NAME`!!)
 3. Create an initial `package.mk`
-    * you can find a template under `packages/package.mk.template`. Copy the template into the new directory and call it `package.mk`
+    * you can find a template under `packages/packages.mk.template`. Copy the template into the new directory and call it `package.mk`
     * apply any required changes to your new `package.mk`
 4. Find a place in the dependency tree
     * when it extend an existing package, add it there to the `PKG_DEPENDS_TARGET`/`PKG_DEPENDS_HOST` etc.
@@ -330,3 +330,21 @@ post_makeinstall_target() {
   rm -rf $INSTALL/usr
 }
 ```
+
+## Addon package template
+
+For Kodi addons, start from `packages/packages.mk.addon_template` instead of the generic package template.
+
+Suggested flow:
+
+1. Copy `packages/packages.mk.addon_template` to your new addon directory as `package.mk`.
+2. Set required addon variables:
+   - `PKG_IS_ADDON="yes"`
+   - `PKG_ADDON_NAME`
+   - `PKG_ADDON_TYPE`
+   - `PKG_REV` (starts at `100`, bump on addon updates)
+3. Fill common package metadata (`PKG_NAME`, `PKG_VERSION`, `PKG_LICENSE`, `PKG_URL`, dependencies, descriptions).
+4. Implement `addon()` when you need to collect files from other package install directories.
+5. Build and validate using normal project image builds and `tools/pkgcheck`.
+
+Use the generic template (`packages/packages.mk.template`) for regular non-addon packages.
