@@ -16,6 +16,25 @@ WORK_DIR="${PKG_DIR}/icon"
 IMG_DIR="$DISTRO_DIR/$DISTRO/addons"
 ADDON_INSTALL_DIR="${TARGET_IMG}/${ADDONS}/${ADDON_VERSION}/${DEVICE:-${PROJECT}}/${TARGET_ARCH}/${PKG_ADDON_ID}"
 
+# Command detection for distro/tooling differences:
+# - ImageMagick can be "convert" (IM6) or "magick" (IM7)
+# - librsvg may provide "rsvg-convert" or "rsvg_convert"
+if command -v magick >/dev/null 2>&1; then
+  CONVERT_BIN="magick"
+elif command -v convert >/dev/null 2>&1; then
+  CONVERT_BIN="convert"
+else
+  die $'\nImageMagick not found (requires '\''magick'\'' or '\''convert'\'').\n\nInstall:\n\tFedora/openSUSE\t: imagemagick\n\tDebian/Ubuntu\t: imagemagick\n\tArch\t\t: imagemagick\n\tGentoo\t\t: media-gfx/imagemagick\n'
+fi
+
+if command -v rsvg-convert >/dev/null 2>&1; then
+  RSVG_CONVERT_BIN="rsvg-convert"
+elif command -v rsvg_convert >/dev/null 2>&1; then
+  RSVG_CONVERT_BIN="rsvg_convert"
+else
+  die $'\nlibrsvg converter not found (requires '\''rsvg-convert'\'').\n\nInstall:\n\tFedora/openSUSE\t: librsvg2-tools\n\tDebian/Ubuntu\t: librsvg2-bin\n\tArch\t\t: librsvg\n\tGentoo\t\t: gnome-base/librsvg\n'
+fi
+
 # Determine icon name, if "none" dont add text
 if [ -n "$PKG_ADDON_ICON_NAME" ] && [ "$PKG_ADDON_ICON_NAME" != "none" ]; then
   ICON_NAME="$PKG_ADDON_ICON_NAME"
@@ -40,7 +59,7 @@ TMP_SHADOW=$(mktemp --suffix=.png)
 if [ -f "${WORK_DIR}/icon-source.svg" ]; then
   SRC_ICON=$(mktemp --suffix=.png)
   # rsvg-convert resize has bad quality, so we convert to png first and then use convert to resize
-  rsvg-convert -w 1500 "${WORK_DIR}/icon-source.svg" -o "$SRC_ICON"
+  "$RSVG_CONVERT_BIN" -w 1500 "${WORK_DIR}/icon-source.svg" -o "$SRC_ICON"
 elif [ -f "${WORK_DIR}/icon-source.png" ]; then
   SRC_ICON="${WORK_DIR}/icon-source.png"
 else
@@ -48,10 +67,10 @@ else
 fi
 
 # icon resize
-convert -background none -density 300 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}" "$TMP_ICON"
+"$CONVERT_BIN" -background none -density 300 "$SRC_ICON" -strip -resize "${PKG_ADDON_ICON_SIZE:-222}x${PKG_ADDON_ICON_SIZE:-222}" "$TMP_ICON"
 
 # icon create drop shadow
-convert "$TMP_ICON" \
+"$CONVERT_BIN" "$TMP_ICON" \
   \( +clone -background black -shadow 60x4+2+2 \) \
   +swap -background none -layers merge +repage \
   "$TMP_ICON"
@@ -59,10 +78,10 @@ convert "$TMP_ICON" \
 # overlay resize and drop shadow
 if [ "$ICON_OVERLAY" = "yes" ]; then
   # Resize
-  convert -background none "${IMG_DIR}/$ICON_OVERLAY_IMG" -resize 80 "$TMP_OVERLAY"
+  "$CONVERT_BIN" -background none "${IMG_DIR}/$ICON_OVERLAY_IMG" -resize 80 "$TMP_OVERLAY"
 
   # create drop shadow
-  convert "$TMP_OVERLAY" \
+  "$CONVERT_BIN" "$TMP_OVERLAY" \
     \( +clone -background black -shadow 60x4+2+2 \) \
     +swap -background none -layers merge +repage \
     "$TMP_SHADOW"
@@ -88,7 +107,7 @@ convert_args+=(
   "${WORK_DIR}/icon.png"
 )
 
-convert "${convert_args[@]}"
+"$CONVERT_BIN" "${convert_args[@]}"
 
 echo "Icon created for ${PKG_NAME} at ${WORK_DIR}/icon.png"
 
