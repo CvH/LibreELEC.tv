@@ -17,6 +17,7 @@ PKG_BUILD_FLAGS="-sysroot -cfg-libs"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="Minisatip"
+PKG_ADDON_ICON_NAME="MiniSat>IP"
 PKG_ADDON_TYPE="xbmc.service"
 
 pre_configure_target() {
