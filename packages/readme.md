@@ -77,6 +77,10 @@ Additional options used when the package builds an addon.
 | PKG_REV     | -       | yes      | The revision number of the addon (starts at 100). Must be placed after `PKG_VERSION`. Must be incremented for each new version else Kodi clients will not detect version change and download the updated addon. |
 | PKG_IS_ADDON | no     | yes      | Must be set to `yes` <br>or to `embedded` when this addon is part of the image |
 | PKG_ADDON_NAME | -    | yes      | Proper name of the addon that is shown at the repo |
+| PKG_ADDON_ICON_NAME | PKG_ADDON_NAME | no | Text label rendered on the generated addon icon. Set to `none` to disable text |
+| PKG_ADDON_ICON_SIZE | - | no | Icon size in px, keeps aspect ratio |
+| PKG_ADDON_ICON_OFFSET | - | no | Vertical icon offset (Y-axis), '-10' or '+10' |
+| PKG_ADDON_ICON_OVERLAY_OFFSET | - | no | Vertical overlay offset (Y-axis), '-10' or '+10' |
 | PKG_ADDON_TYPE | -    | yes      | See LE/config/addon/ for other possibilities |
 | PKG_ADDON_VERSION | - | no       | The version of the addon, used in addon.xml |
 | PKG_ADDON_PROVIDES | - | no      | [Provides](http://kodi.wiki/view/addon.xml#.3Cprovides.3E_element) in addon-xml |
