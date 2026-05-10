@@ -9,3 +9,8 @@ PKG_SITE="https://git.sr.ht/~brocellous/wlrctl"
 PKG_URL="https://git.sr.ht/~brocellous/wlrctl/archive/v${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain wayland wayland-protocols"
 PKG_LONGDESC="Utility for miscellaneous wlroots Wayland extensions."
+
+if [ "${DISPLAYSERVER}" != "wl" ]; then
+  PKG_BUILD_FLAGS="-sysroot"
+  PKG_DEPENDS_CONFIG="wayland wayland-protocols"
+fi
