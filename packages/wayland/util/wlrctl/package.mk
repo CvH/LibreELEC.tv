@@ -14,3 +14,8 @@ if [ "${DISPLAYSERVER}" != "wl" ]; then
   PKG_BUILD_FLAGS="-sysroot"
   PKG_DEPENDS_CONFIG="wayland wayland-protocols"
 fi
+
+pre_configure_target() {
+  # Upstream uses -Werror; suppress char signedness false-positive on aarch64.
+  export TARGET_CFLAGS="${TARGET_CFLAGS} -Wno-type-limits"
+}
