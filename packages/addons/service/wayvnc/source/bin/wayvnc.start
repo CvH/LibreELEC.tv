@@ -1,0 +1,9 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+
+XDG_RUNTIME_DIR="/run/user/$(id -u)" 
+LD_LIBRARY_PATH="/storage/.kodi/addons/tools.externalhelper/lib.private:/storage/.kodi/addons/service.wayvnc/lib.private" 
+/storage/.kodi/addons/service.wayvnc/bin/wayvnc --socket=/run/user/0/wayland-01 0.0.0.0
