@@ -1,0 +1,11 @@
+[Unit]
+Description=ReFrame Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/reframe-server --config /etc/reframe/config.toml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
