@@ -1,0 +1,15 @@
+[Unit]
+Description=KasmVNC
+After=graphical.target
+
+[Service]
+Environment=KASMVNC_DRINODE=/dev/dri/renderD128
+ExecStart=/bin/sh /storage/.kodi/addons/service.kasmvnc/bin/kasmvnc.start
+TimeoutStopSec=1
+Restart=always
+RestartSec=2
+StartLimitInterval=0
+
+[Install]
+WantedBy=kodi.target
+Alias=kasmvnc.service

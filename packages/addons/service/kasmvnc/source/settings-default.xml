@@ -1,0 +1,3 @@
+<settings>
+    <setting id="websocket_port" value="6901" />
+</settings>

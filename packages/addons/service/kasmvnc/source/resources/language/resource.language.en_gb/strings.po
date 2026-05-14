@@ -1,0 +1,13 @@
+# Kodi Media Center language file
+# Addon Name: kasmvnc
+# Addon id: service.kasmvnc
+msgid ""
+msgstr ""
+
+msgctxt "#30000"
+msgid "Configuration"
+msgstr ""
+
+msgctxt "#30001"
+msgid "WebSocket port"
+msgstr ""

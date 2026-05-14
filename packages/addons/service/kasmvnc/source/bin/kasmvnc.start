@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2024-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+oe_setup_addon service.kasmvnc
+unset DISPLAY
+
+if [ ! -f "$ADDON_HOME/self.pem" ]
+then
+  openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout ${ADDON_HOME}/self.pem -out ${ADDON_HOME}/self.pem -subj "/C=US/ST=VA/L=None/O=None/OU=DoFu/CN=kasm/emailAddress=none@none.none"
+fi
+
+LD_LIBRARY_PATH=$ADDON_DIR/lib.private:$LD_LIBRARY_PATH
+KASMVNC_DRINODE=${KASMVNC_DRINODE:-/dev/dri/renderD128}
+
+Xvnc -drinode "$KASMVNC_DRINODE" -interface 0.0.0.0 -PublicIP 127.0.0.1 -disableBasicAuth -RectThreads 0 -Log *:stdout:100 -httpd "$ADDON_DIR/www" -sslOnly 1 -SecurityTypes None -websocketPort="$websocket_port" -FreeKeyMappings -cert "${ADDON_HOME}/self.pem" -key "${ADDON_HOME}/self.pem" :0
