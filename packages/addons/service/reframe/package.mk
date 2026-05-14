@@ -9,7 +9,7 @@ PKG_ARCH="any"
 PKG_LICENSE="GPL-3.0-only"
 PKG_SITE="https://github.com/AlynxZhou/reframe"
 PKG_URL="https://github.com/AlynxZhou/reframe/archive/refs/tags/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain aml neatvnc libdrm libxkbcommon wayland glib epoxy pixman-1"
+PKG_DEPENDS_TARGET="toolchain libvncserver meson libdrm libxkbcommon"
 PKG_SECTION="service"
 PKG_SHORTDESC="DRM/KMS based remote desktop for Linux"
 PKG_LONGDESC="ReFrame is a DRM/KMS based remote desktop for Linux that supports Wayland, NVIDIA, and headless setups."
@@ -22,7 +22,7 @@ PKG_ADDON_ICON_NAME="ReFrame"
 PKG_ADDON_TYPE="xbmc.service"
 
 # Assuming it uses meson
-PKG_MESON_OPTS_TARGET="-Dneatvnc=enabled -Dsystemd=enabled"
+PKG_MESON_OPTS_TARGET="-Dneatvnc=false -Dsystemd=true"
 
 addon() {
   mkdir -p ${ADDON_BUILD}/${PKG_ADDON_ID}/{bin,lib.private}
