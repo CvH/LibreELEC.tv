@@ -29,6 +29,10 @@ echo "using kanshi configuration ${CONF}"
 kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
+wayvnc --socket=/run/user/0/wayvnc 0.0.0.0 &>/tmp/aa &
+WAYVNC_PID=$!
+
 "$@"
 
 kill -TERM "${KANSHI_PID}"
+kill -TERM "${WAYVNC_PID}"

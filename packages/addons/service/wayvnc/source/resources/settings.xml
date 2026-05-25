@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<settings>
-    <setting id="address" type="string" label="30001" default="0.0.0.0"/>
-    <setting id="port" type="number" label="30002" default="5900"/>
-    <setting id="enable_auth" type="bool" label="30003" default="false"/>
-    <setting id="password" type="text" label="30004" default="" enable="!eq(-1,false)" option="hidden"/>
-</settings>
