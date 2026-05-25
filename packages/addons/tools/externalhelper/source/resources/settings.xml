@@ -67,14 +67,28 @@
                         <dependency type="visible" setting="WAYVNC_ENABLE" operator="is">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="WAYVNC_PASSWORD" type="string" label="30204" help="">
+                <setting id="WAYVNC_USERNAME" type="string" label="30204" help="">
+                    <level>0</level>
+                    <default>libreelec</default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string">
+                        <heading>30204</heading>
+                    </control>
+                    <dependencies>
+                        <dependency type="visible" setting="WAYVNC_ENABLE" operator="is">true</dependency>
+                        <dependency type="visible" setting="WAYVNC_PASSWORD_ENABLE" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+                <setting id="WAYVNC_PASSWORD" type="string" label="30205" help="">
                     <level>0</level>
                     <default />
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <control type="edit" format="string">
-                        <heading>30204</heading>
+                        <heading>30205</heading>
                         <hidden>true</hidden>
                     </control>
                     <dependencies>

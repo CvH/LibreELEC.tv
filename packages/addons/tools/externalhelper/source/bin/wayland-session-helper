@@ -46,6 +46,7 @@ if [ "${WAYVNC_ENABLE}" = "true" ]; then
 
   # config file
   WAYVNC_CONFIG_FILE="$ADDON_HOME/wayvnc.config"
+  WAYVNC_OPENSSL_FILE="$ADDON_HOME/openssl.cnf"
 
   WAYVNC_CMD="wayvnc"
 
@@ -55,17 +56,37 @@ if [ "${WAYVNC_ENABLE}" = "true" ]; then
   # optional password
   if [ "${WAYVNC_PASSWORD_ENABLE}" = "true" ] && [ -n "${WAYVNC_PASSWORD}" ]; then
     # create config file if it doesn't exist, or update only if content differs
-    if [[ ! -f "$ADDON_HOME/rsa_key.pem" && ! -f "$ADDON_HOME/rsa_cert.pem" ]]; then
-	  ssh-keygen -q -m PEM -t rsa -N "" -f "$ADDON_HOME/rsa_key.pem"
+    if [[ ! -f "$ADDON_HOME/tls_key.pem" && ! -f "$ADDON_HOME/tls_cert.pem" ]]; then
+	#   openssl req -x509 -newkey ec \
+        # -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 3650 \
+        # -keyout $ADDON_HOME/tls_key.pem -out $ADDON_HOME/tls_cert.pem \
+        # -config /etc/ssl/openssl.cnf
+      cat >"${WAYVNC_OPENSSL_FILE}" <<'EOF'
+[ req ]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+[ req_distinguished_name ]
+CN = localhost
+[ v3_req ]
+subjectAltName = @alt_names
+[ alt_names ]
+DNS.1 = localhost
+IP.1 = 127.0.0.1
+EOF
+      openssl req -x509 -newkey ed25519 \
+        -nodes -days 3650 \
+        -keyout "$ADDON_HOME/tls_key.pem" -out "$ADDON_HOME/tls_cert.pem" \
+        -config "${WAYVNC_OPENSSL_FILE}"
     fi
     if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! grep -qxF "${WAYVNC_PASSWORD}" "${WAYVNC_CONFIG_FILE}"; then
-      cat >${WAYVNC_CONFIG_FILE} <<EOF
+      cat >"${WAYVNC_CONFIG_FILE}" <<EOF
 use_relative_paths=true
-address=0.0.0.0
 enable_auth=true
-username=luser
+username=${WAYVNC_USERNAME}
 password=${WAYVNC_PASSWORD}
-rsa_private_key_file=rsa_key.pem
+private_key_file=tls_key.pem
+certificate_file=tls_cert.pem
 EOF
     fi
     # start command

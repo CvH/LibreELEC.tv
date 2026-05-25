@@ -82,5 +82,9 @@ msgid "Enable Password"
 msgstr ""
 
 msgctxt "#30204"
+msgid "Username"
+msgstr ""
+
+msgctxt "#30205"
 msgid "Password"
 msgstr ""
