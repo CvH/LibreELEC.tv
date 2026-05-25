@@ -44,30 +44,30 @@
         </category>
         <category id="VNC" label="30200">
             <group id="1">
-                <setting id="VNC_ENABLE" type="boolean" label="30201" help="">
+                <setting id="WAYVNC_ENABLE" type="boolean" label="30201" help="">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="VNC_PORT" type="integer" label="30202" help="5900">
+                <setting id="WAYVNC_PORT" type="integer" label="30202" help="5900">
                     <level>0</level>
                     <default>5900</default>
                     <control type="edit" format="integer">
                         <heading>30202</heading>
                     </control>
                     <dependencies>
-                        <dependency type="visible" setting="VNC_ENABLE" operator="is">true</dependency>
+                        <dependency type="visible" setting="WAYVNC_ENABLE" operator="is">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="VNC_PASSWORD_ENABLE" type="boolean" label="30203" help="">
+                <setting id="WAYVNC_PASSWORD_ENABLE" type="boolean" label="30203" help="">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                     <dependencies>
-                        <dependency type="visible" setting="VNC_ENABLE" operator="is">true</dependency>
+                        <dependency type="visible" setting="WAYVNC_ENABLE" operator="is">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="VNC_PASSWORD" type="string" label="30204" help="">
+                <setting id="WAYVNC_PASSWORD" type="string" label="30204" help="">
                     <level>0</level>
                     <default />
                     <constraints>
@@ -78,8 +78,8 @@
                         <hidden>true</hidden>
                     </control>
                     <dependencies>
-                        <dependency type="visible" setting="VNC_ENABLE" operator="is">true</dependency>
-                        <dependency type="visible" setting="VNC_PASSWORD_ENABLE" operator="is">true</dependency>
+                        <dependency type="visible" setting="WAYVNC_ENABLE" operator="is">true</dependency>
+                        <dependency type="visible" setting="WAYVNC_PASSWORD_ENABLE" operator="is">true</dependency>
                     </dependencies>
                 </setting>
             </group>

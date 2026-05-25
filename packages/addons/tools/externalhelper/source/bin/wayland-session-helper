@@ -29,12 +29,33 @@ echo "using kanshi configuration ${CONF}"
 kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
-WAYVNC_LOCAL_IP=$(ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1)
+# wayvnc
+if [ "${WAYVNC_ENABLE}" = "true" ]; then
+  WAYVNC_LOCAL_IP=$(ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1)
 
-wayvnc "${WAYVNC_LOCAL_IP:-127.0.0.1}" &
-WAYVNC_PID=$!
+  # default values
+  WAYVNC_PORT="${WAYVNC_PORT:-5900}"
+
+  WAYVNC_CMD="wayvnc"
+
+  # bind address + port
+  WAYVNC_CMD="${WAYVNC_CMD} ${WAYVNC_LOCAL_IP:-127.0.0.1} ${WAYVNC_PORT}"
+
+  # optional password
+  if [ -n "${WAYVNC_PASSWORD}" ]; then
+    WAYVNC_CMD="${WAYVNC_CMD} --password ${VNC_PASSWORD}"
+  fi
+
+  # start wayvnc
+  sh -c "${WAYVNC_CMD}" &
+  WAYVNC_PID=$!
+fi
 
 "$@"
 
 kill -TERM "${KANSHI_PID}"
-kill -TERM "${WAYVNC_PID}"
+
+# stop wayvnc
+if [ -n "${WAYVNC_PID}" ]; then
+  kill -TERM "${WAYVNC_PID}"
+fi
