@@ -4,13 +4,20 @@
 
 . /etc/profile
 
-addondir=$(dirname "$(dirname "$0")")
+oe_setup_addon tools.externalhelper
 
+echo $ADDON_DIR >/tmp/aa
+echo $WAYVNC_ENABLE >>/tmp/aa
+echo $WAYVNC_PORT >>/tmp/aa
+echo $WAYVNC_PASSWORD_ENABLE >>/tmp/aa
+echo $WAYVNC_PASSWORD >>/tmp/aa
+echo $ADDON_HOME >>/tmp/aa
+echo $ADDON_DIR >>/tmp/aa
 CONF=""
 if [ -n "${KODI_DISPLAY_CONFIG}" ]; then
   CONF="/storage/.config/kanshi/${KODI_DISPLAY_CONFIG}"
   if [ ! -f "${CONF}" ]; then
-    CONF="${addondir}/kanshi-config/${KODI_DISPLAY_CONFIG}"
+    CONF="${ADDON_DIR}/kanshi-config/${KODI_DISPLAY_CONFIG}"
     if [ ! -f "${CONF}" ]; then
       echo "kanshi configuration ${KODI_DISPLAY_CONFIG} not found, falling back to default config"
       CONF=""
@@ -21,7 +28,7 @@ fi
 if [ -z "${CONF}" ]; then
   CONF="/storage/.config/kanshi/default"
   if [ ! -f "${CONF}" ]; then
-    CONF="${addondir}/kanshi-config/default"
+    CONF="${ADDON_DIR}/kanshi-config/default"
   fi
 fi
 echo "using kanshi configuration ${CONF}"
@@ -30,11 +37,15 @@ kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
 # wayvnc
+
 if [ "${WAYVNC_ENABLE}" = "true" ]; then
   WAYVNC_LOCAL_IP=$(ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1)
 
   # default values
   WAYVNC_PORT="${WAYVNC_PORT:-5900}"
+
+  # config file
+  WAYVNC_CONFIG_FILE="$ADDON_HOME/wayvnc.config"
 
   WAYVNC_CMD="wayvnc"
 
@@ -42,12 +53,27 @@ if [ "${WAYVNC_ENABLE}" = "true" ]; then
   WAYVNC_CMD="${WAYVNC_CMD} ${WAYVNC_LOCAL_IP:-127.0.0.1} ${WAYVNC_PORT}"
 
   # optional password
-  if [ -n "${WAYVNC_PASSWORD}" ]; then
-    WAYVNC_CMD="${WAYVNC_CMD} --password ${VNC_PASSWORD}"
+  if [ "${WAYVNC_PASSWORD_ENABLE}" = "true" ] && [ -n "${WAYVNC_PASSWORD}" ]; then
+    # create config file if it doesn't exist, or update only if content differs
+    if [[ ! -f "$ADDON_HOME/rsa_key.pem" && ! -f "$ADDON_HOME/rsa_cert.pem" ]]; then
+	  ssh-keygen -q -m PEM -t rsa -N "" -f "$ADDON_HOME/rsa_key.pem"
+    fi
+    if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! grep -qxF "${WAYVNC_PASSWORD}" "${WAYVNC_CONFIG_FILE}"; then
+      cat >${WAYVNC_CONFIG_FILE} <<EOF
+use_relative_paths=true
+address=0.0.0.0
+enable_auth=true
+username=luser
+password=${WAYVNC_PASSWORD}
+rsa_private_key_file=rsa_key.pem
+EOF
+    fi
+    # start command
+    WAYVNC_CMD="${WAYVNC_CMD} --config ${WAYVNC_CONFIG_FILE}"
   fi
 
   # start wayvnc
-  sh -c "${WAYVNC_CMD}" &
+  sh -c "${WAYVNC_CMD}" &>/tmp/bb &
   WAYVNC_PID=$!
 fi
 
