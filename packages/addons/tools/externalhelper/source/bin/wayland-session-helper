@@ -29,7 +29,9 @@ echo "using kanshi configuration ${CONF}"
 kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
-wayvnc --socket=/run/user/0/wayvnc 0.0.0.0 &>/tmp/aa &
+WAYVNC_LOCAL_IP=$(ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1)
+
+wayvnc "${WAYVNC_LOCAL_IP:-127.0.0.1}" &
 WAYVNC_PID=$!
 
 "$@"
