@@ -79,7 +79,14 @@ EOF
         -keyout "$ADDON_HOME/tls_key.pem" -out "$ADDON_HOME/tls_cert.pem" \
         -config "${WAYVNC_OPENSSL_FILE}"
     fi
-    if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! grep -qxF "${WAYVNC_PASSWORD}" "${WAYVNC_CONFIG_FILE}"; then
+    if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! cat <<EOF | cmp -s - "${WAYVNC_CONFIG_FILE}"; then
+use_relative_paths=true
+enable_auth=true
+username=${WAYVNC_USERNAME}
+password=${WAYVNC_PASSWORD}
+private_key_file=tls_key.pem
+certificate_file=tls_cert.pem
+EOF
       cat >"${WAYVNC_CONFIG_FILE}" <<EOF
 use_relative_paths=true
 enable_auth=true
