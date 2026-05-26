@@ -64,4 +64,4 @@ EOF
 fi
 
 # launch wayvnc with the configured options
-sh -c "${WAYVNC_CMD}"
+sh -c "${WAYVNC_CMD}" &

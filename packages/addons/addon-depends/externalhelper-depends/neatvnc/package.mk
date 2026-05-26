@@ -16,6 +16,6 @@ PKG_MESON_OPTS_TARGET="-Dexamples=false \
                        -Dgbm=enabled \
                        -Dh264=enabled \
                        -Djpeg=enabled \
-                       -Dnettle=enabled \
+                       -Dnettle=disabled \
                        -Dtests=false \
 					   -Dtls=enabled"
