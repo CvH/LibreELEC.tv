@@ -4,13 +4,15 @@
 
 . /etc/profile
 
+oe_setup_addon tools.externalhelper
+
 addondir=$(dirname "$(dirname "$0")")
 
 CONF=""
 if [ -n "${KODI_DISPLAY_CONFIG}" ]; then
   CONF="/storage/.config/kanshi/${KODI_DISPLAY_CONFIG}"
   if [ ! -f "${CONF}" ]; then
-    CONF="${addondir}/kanshi-config/${KODI_DISPLAY_CONFIG}"
+    CONF="${ADDON_DIR}/kanshi-config/${KODI_DISPLAY_CONFIG}"
     if [ ! -f "${CONF}" ]; then
       echo "kanshi configuration ${KODI_DISPLAY_CONFIG} not found, falling back to default config"
       CONF=""
@@ -21,7 +23,7 @@ fi
 if [ -z "${CONF}" ]; then
   CONF="/storage/.config/kanshi/default"
   if [ ! -f "${CONF}" ]; then
-    CONF="${addondir}/kanshi-config/default"
+    CONF="${ADDON_DIR}/kanshi-config/default"
   fi
 fi
 echo "using kanshi configuration ${CONF}"
