@@ -21,6 +21,7 @@ WAYVNC_CMD="wayvnc ${WAYVNC_LOCAL_IP:-127.0.0.1} ${WAYVNC_PORT}"
 
 # optional password
 if [ "${WAYVNC_PASSWORD_ENABLE}" = "true" ] && [ -n "${WAYVNC_PASSWORD}" ]; then
+  # generate TLS certificates if not already present
   if [ ! -f "$ADDON_HOME/tls_key.pem" ] && [ ! -f "$ADDON_HOME/tls_cert.pem" ]; then
     cat >"${WAYVNC_OPENSSL_FILE}" <<'EOF'
 [ req ]
@@ -41,6 +42,7 @@ EOF
       -config "${WAYVNC_OPENSSL_FILE}"
   fi
 
+  # only update the WayVNC config file when content has changed
   if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! cat <<EOF | cmp -s - "${WAYVNC_CONFIG_FILE}"; then
 use_relative_paths=true
 enable_auth=true
@@ -60,4 +62,6 @@ EOF
   fi
   WAYVNC_CMD="${WAYVNC_CMD} --config ${WAYVNC_CONFIG_FILE}"
 fi
+
+# launch wayvnc with the configured options
 sh -c "${WAYVNC_CMD}"
