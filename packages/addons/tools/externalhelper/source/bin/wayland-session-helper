@@ -36,16 +36,15 @@ echo "using kanshi configuration ${CONF}"
 kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
-
 if [ "${WAYVNC_ENABLE}" = "true" ]; then
   . "${ADDON_DIR}/bin/wayvnc-session-helper"
 fi
-echo "PID: $WAYVNC_PID" >>/tmp/bb
+
 "$@"
 
 kill -TERM "${KANSHI_PID}"
 
 # stop wayvnc
-if [ -n "${WAYVNC_PID}" ]; then
-  kill -TERM "${WAYVNC_PID}"
+if [ "${WAYVNC_ENABLE}" = "true" ]; then
+  killall -q wayvnc
 fi

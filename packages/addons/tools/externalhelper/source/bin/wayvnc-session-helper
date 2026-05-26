@@ -60,5 +60,4 @@ EOF
   fi
   WAYVNC_CMD="${WAYVNC_CMD} --config ${WAYVNC_CONFIG_FILE}"
 fi
-sh -c "${WAYVNC_CMD}" & &>/tmp/bb
-export WAYVNC_PID=$!
+sh -c "${WAYVNC_CMD}"
