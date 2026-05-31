@@ -6,6 +6,11 @@
 
 oe_setup_addon tools.externalhelper
 
+# exit if wayvnc is not enabled
+if [ "${WAYVNC_ENABLE}" != "true" ]; then
+  exit 0
+fi
+
 # get local ip address for wayvnc to bind to
 WAYVNC_LOCAL_IP=$(ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1)
 
@@ -42,7 +47,8 @@ EOF
       -config "${WAYVNC_OPENSSL_FILE}"
   fi
 
-  WAYVNC_CONFIG_CONTENT="$(cat <<EOF
+  WAYVNC_CONFIG_CONTENT="$(
+    cat <<EOF
 use_relative_paths=true
 enable_auth=true
 username=${WAYVNC_USERNAME}
@@ -50,7 +56,7 @@ password=${WAYVNC_PASSWORD}
 private_key_file=tls_key.pem
 certificate_file=tls_cert.pem
 EOF
-)"
+  )"
 
   # only update the WayVNC config file when content has changed
   if [ ! -f "${WAYVNC_CONFIG_FILE}" ] || ! echo -n "$WAYVNC_CONFIG_CONTENT" | cmp -s - "${WAYVNC_CONFIG_FILE}"; then
@@ -60,4 +66,5 @@ EOF
 fi
 
 # launch wayvnc with the configured options
-sh -c "${WAYVNC_CMD}" &
+${WAYVNC_CMD} >"${ADDON_HOME}/wayvnc.log" 2>&1 &
+echo "$!"

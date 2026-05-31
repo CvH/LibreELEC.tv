@@ -4,14 +4,14 @@
 
 . /etc/profile
 
-oe_setup_addon tools.externalhelper
+addondir=$(dirname "$(dirname "$0")")
 
 # choose the kanshi display configuration
 CONF=""
 if [ -n "${KODI_DISPLAY_CONFIG}" ]; then
   CONF="/storage/.config/kanshi/${KODI_DISPLAY_CONFIG}"
   if [ ! -f "${CONF}" ]; then
-    CONF="${ADDON_DIR}/kanshi-config/${KODI_DISPLAY_CONFIG}"
+    CONF="${addondir}/kanshi-config/${KODI_DISPLAY_CONFIG}"
     if [ ! -f "${CONF}" ]; then
       echo "kanshi configuration ${KODI_DISPLAY_CONFIG} not found, falling back to default config"
       CONF=""
@@ -22,7 +22,7 @@ fi
 if [ -z "${CONF}" ]; then
   CONF="/storage/.config/kanshi/default"
   if [ ! -f "${CONF}" ]; then
-    CONF="${ADDON_DIR}/kanshi-config/default"
+    CONF="${addondir}/kanshi-config/default"
   fi
 fi
 echo "using kanshi configuration ${CONF}"
@@ -31,10 +31,8 @@ echo "using kanshi configuration ${CONF}"
 kanshi -c "${CONF}" &
 KANSHI_PID=$!
 
-# optionally run WayVNC if enabled
-if [ "${WAYVNC_ENABLE}" = "true" ]; then
-  . "${ADDON_DIR}/bin/wayvnc-session-helper"
-fi
+# run WayVNC if enabled
+WAYVNC_PID=$(${addondir}/bin/wayvnc-session-helper)
 
 # continue with the remaining session command
 "$@"
@@ -42,7 +40,7 @@ fi
 # stop kanshi when the session ends
 kill -TERM "${KANSHI_PID}"
 
-# stop wayvnc if enabled
-if [ "${WAYVNC_ENABLE}" = "true" ]; then
-  killall -q wayvnc
+# stop wayvnc when the session ends
+if [ -n "${WAYVNC_PID}" ]; then
+  kill -TERM "${WAYVNC_PID}"
 fi
