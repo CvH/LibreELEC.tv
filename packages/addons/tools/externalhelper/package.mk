@@ -7,7 +7,7 @@ PKG_REV="3"
 PKG_LICENSE="GPL-2.0-or-later"
 PKG_SITE="https://libreelec.tv"
 PKG_URL=""
-PKG_DEPENDS_TARGET="toolchain seatd wayland wlroots kanshi cage wayvnc"
+PKG_DEPENDS_TARGET="toolchain seatd wayland wlroots kanshi cage wayvnc sway"
 PKG_SECTION="tools"
 PKG_SHORTDESC="External programs helper"
 PKG_LONGDESC="Tools to run external programs in a minimal wayland session"
@@ -26,8 +26,12 @@ addon() {
     cp -P $(get_install_dir cage)/usr/bin/cage "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
     cp -P $(get_install_dir kanshi)/usr/bin/kanshi "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
 	cp -P $(get_install_dir wayvnc)/usr/bin/wayvnc "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
+	# sway
+	cp -P $(get_install_dir sway)/usr/bin/sway "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
+	cp -P $(get_install_dir sway)/usr/bin/swaymsg "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
+	cp -P $(get_install_dir swaybg)/usr/bin/swaybg "${ADDON_BUILD}/${PKG_ADDON_ID}/bin"
 
-    for f in seatd seatd-launch cage kanshi wayvnc; do
+    for f in seatd seatd-launch cage kanshi wayvnc sway swaymsg swaybg; do
       patchelf --add-rpath '${ORIGIN}/../lib.private' "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/${f}"
     done
 
@@ -38,5 +42,12 @@ addon() {
     cp -L $(get_install_dir seatd)/usr/lib/libseat.so.1 "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private"
     cp -L $(get_install_dir wayland)/usr/lib/libwayland-{client,server}.so.0 "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private"
     cp -L $(get_install_dir wlroots)/usr/lib/libwlroots*.so "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private"
+	
+	cp -L $(get_install_dir gdk-pixbuf)/usr/lib/libgdk_pixbuf-2.0.so.0 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/
+	cp -L $(get_install_dir json-c)/usr/lib/libjson-c.so.5 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/
+	cp -L $(get_install_dir pango)/usr/lib/libpango-1.0.so.0 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/
+	cp -L $(get_install_dir pango)/usr/lib/libpangocairo-1.0.so.0 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/
+	cp -L $(get_install_dir pango)/usr/lib/libpangoft2-1.0.so.0 ${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/
     patchelf --add-rpath '${ORIGIN}/../lib.private' "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"libwlroots*.so
+	patchelf --add-rpath '${ORIGIN}/../lib.private' "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"libpangoft2*
 }

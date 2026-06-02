@@ -10,9 +10,13 @@ export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 mkdir -p "${XDG_RUNTIME_DIR}"
 chmod 0700 "${XDG_RUNTIME_DIR}"
 
+export SWAYSOCK="${XDG_RUNTIME_DIR}/sway-ipc.0.sock"
+
 mydir=$(dirname "$0")
+
+# Workaround missing libpangoft2-1.0.so.0
+export LD_LIBRARY_PATH="/storage/.kodi/addons/tools.externalhelper/lib.private/"
 
 dbus-run-session -- \
   "${mydir}/seatd-launch" -p "${mydir}/seatd" -- \
-  "${mydir}/cage" -- \
-  "${mydir}/wayland-session-helper" "$@"
+  "${mydir}/sway" -c ${mydir}/sway.conf -V

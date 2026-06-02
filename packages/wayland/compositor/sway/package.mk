@@ -7,15 +7,17 @@ PKG_SHA256="29ca7caac960d13e02d8213418d91a5422c7c23102a283ceab944c57c5e1efcf"
 PKG_LICENSE="MIT"
 PKG_SITE="https://swaywm.org/"
 PKG_URL="https://github.com/swaywm/sway/archive/${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain wayland wayland-protocols libdrm libxkbcommon libinput cairo pango libjpeg-turbo dbus json-c wlroots gdk-pixbuf swaybg foot bemenu"
+PKG_DEPENDS_TARGET="toolchain wayland wayland-protocols libdrm libxkbcommon libinput cairo pango libjpeg-turbo dbus json-c wlroots swaybg"
 PKG_LONGDESC="i3-compatible Wayland compositor"
+
+PKG_DEPENDS_CONFIG="wayland wayland-protocols seatd gdk-pixbuf shared-mime-info"
 
 PKG_MESON_OPTS_TARGET="-Ddefault-wallpaper=false \
                        -Dzsh-completions=false \
                        -Dbash-completions=false \
                        -Dfish-completions=false \
-                       -Dswaybar=true \
-                       -Dswaynag=true \
+                       -Dswaybar=false \
+                       -Dswaynag=false \
                        -Dtray=disabled \
                        -Dgdk-pixbuf=enabled \
                        -Dman-pages=disabled \
@@ -26,21 +28,3 @@ pre_configure_target() {
   export TARGET_CFLAGS=$(echo "${TARGET_CFLAGS} -Wno-unused-variable")
 }
 
-post_makeinstall_target() {
-  mkdir -p ${INSTALL}/usr/lib/sway
-    cp ${PKG_DIR}/scripts/sway.sh     ${INSTALL}/usr/bin
-    cp ${PKG_DIR}/scripts/sway-config ${INSTALL}/usr/lib/sway
-
-  # install config & wallpaper
-  mkdir -p ${INSTALL}/usr/share/sway
-    cp ${PKG_DIR}/config/* ${INSTALL}/usr/share/sway
-    find_file_path "splash/splash-2160.png" && cp ${FOUND_PATH} ${INSTALL}/usr/share/sway/libreelec-wallpaper-2160.png
-
-  # clean up
-  safe_remove ${INSTALL}/etc
-  safe_remove ${INSTALL}/usr/share/wayland-sessions
-}
-
-post_install() {
-  enable_service sway.service
-}
