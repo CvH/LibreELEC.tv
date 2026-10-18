@@ -2,11 +2,11 @@
 # Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="cage"
-PKG_VERSION="0.3.1"
-PKG_SHA256="6dc1619665acd367e0174c93b234002549a66f55f1de9197d67f0305415babc8"
+PKG_VERSION="bb97c647bbae2d84c96165a17611846eb6bab471"
+PKG_SHA256="640679630d846d19547f4383b22438af115370e75453a5f2197eea008e2e32d1"
 PKG_LICENSE="MIT"
 PKG_SITE="https://www.hjdskes.nl/projects/cage"
-PKG_URL="https://github.com/cage-kiosk/cage/archive/v${PKG_VERSION}.tar.gz"
+PKG_URL="https://github.com/cvh/cage/archive/${PKG_VERSION}.zip"
 PKG_DEPENDS_TARGET="toolchain libxkbcommon seatd wayland wayland-protocols wlroots"
 PKG_DEPENDS_CONFIG="seatd wayland wayland-protocols wlroots"
 PKG_LONGDESC="A Wayland kiosk "

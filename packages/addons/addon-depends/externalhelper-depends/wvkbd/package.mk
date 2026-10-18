@@ -2,8 +2,8 @@
 # Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="wvkbd"
-PKG_VERSION="0.19.4"
-PKG_SHA256="0f259d6c60e52149937020eeb2ab5b2a0d7dff2df735b9b0c54a5654d998d980"
+PKG_VERSION="0.20"
+PKG_SHA256="b5fee580f826190fda94c06267e52e7c09f0fbbec2b02e5d140fe62a10a6c3b0"
 PKG_LICENSE="MIT"
 PKG_SITE="https://github.com/jjsullivan5196/wvkbd"
 PKG_URL="https://github.com/jjsullivan5196/wvkbd/archive/v${PKG_VERSION}.tar.gz"
