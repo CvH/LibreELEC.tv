@@ -1,0 +1,16 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+oe_setup_addon service.introskipper
+
+ff="/storage/.kodi/addons/tools.ffmpeg-tools/bin"
+dotnet_bin="/storage/.kodi/addons/tools.dotnet-runtime/bin"
+export DOTNET_ROOT="${dotnet_bin}"
+export PATH="${dotnet_bin}:${ff}:${PATH}"
+export INTROSKIPPER_FFMPEG_PATH="${ff}/ffmpeg"
+
+exec "${ADDON_DIR}/bin/IntroSkipper.Server" \
+  --ffmpeg-path "${ff}/ffmpeg" \
+  --urls "http://0.0.0.0:8037"
