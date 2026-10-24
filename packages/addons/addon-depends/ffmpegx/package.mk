@@ -7,7 +7,7 @@ PKG_SHA256="8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://ffmpeg.org"
 PKG_URL="https://ffmpeg.org/releases/ffmpeg-${PKG_VERSION}.tar.xz"
-PKG_DEPENDS_TARGET="toolchain aom bzip2 openssl lame libvorbis libxml2 opus x264 zlib"
+PKG_DEPENDS_TARGET="toolchain aom bzip2 chromaprint openssl lame libvorbis libxml2 opus x264 zlib"
 PKG_LONGDESC="FFmpegx is an complete FFmpeg build to support encoding and decoding."
 PKG_BUILD_FLAGS="-sysroot"
 
@@ -35,14 +35,19 @@ if [ "${DISPLAYSERVER}" = "x11" ]; then
   PKG_DEPENDS_TARGET+=" libxcb libX11"
 fi
 
-# lame is a -sysroot package, so ffmpeg's libmp3lame check (a direct link
-# probe, not pkg-config) cannot see it. Add lame's install paths.
-TARGET_CFLAGS+=" -I$(get_install_dir lame)/usr/include"
-TARGET_LDFLAGS+=" -L$(get_install_dir lame)/usr/lib"
+# lame and chromaprint are -sysroot packages, so ffmpeg's link checks
+# cannot see them in sysroot. Add their install paths.
+TARGET_CFLAGS+=" -I$(get_install_dir lame)/usr/include \
+                 -I$(get_install_dir chromaprint)/usr/include"
+TARGET_LDFLAGS+=" -L$(get_install_dir lame)/usr/lib \
+                  -L$(get_install_dir chromaprint)/usr/lib"
 
 pre_configure_target() {
   cd ${PKG_BUILD}
   rm -rf .${TARGET_NAME}
+
+  export PKG_CONFIG_PATH="$(get_install_dir chromaprint)/usr/lib/pkgconfig:${PKG_CONFIG_PATH}"
+  PKG_FFMPEG_LIBS+=" -lstdc++"
 
   # HW encoders
 
@@ -174,6 +179,7 @@ configure_target() {
     --disable-gnutls \
     --enable-openssl \
     --enable-libxml2 \
+    --enable-chromaprint \
     \
     `#Advanced options` \
     --disable-hardcoded-tables
