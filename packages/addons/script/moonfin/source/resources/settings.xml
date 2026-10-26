@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<settings version="1">
+  <section id="script.moonfin">
+    <category id="general" label="General">
+      <group id="1">
+        <setting id="custom_args" type="string" label="Custom Arguments">
+          <level>0</level>
+          <default></default>
+          <control type="edit" format="string">
+            <heading>Custom Arguments</heading>
+          </control>
+        </setting>
+      </group>
+    </category>
+  </section>
+</settings>

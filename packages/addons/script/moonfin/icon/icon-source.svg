@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="moonfin-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#aa55ff"/>
+      <stop offset="50%" stop-color="#00aaff"/>
+      <stop offset="100%" stop-color="#00e5ff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#14141e"/>
+  <!-- Stylized Crescent Moon & Play Fin -->
+  <g transform="translate(18, 18)" filter="url(#glow)">
+    <path d="M 110,20 C 55,20 10,65 10,120 C 10,175 55,220 110,220 C 145,220 175,202 193,174 C 130,185 85,135 85,85 C 85,55 100,32 110,20 Z" fill="url(#moonfin-grad)"/>
+    <polygon points="120,80 185,120 120,160" fill="#ffffff" opacity="0.95"/>
+  </g>
+</svg>

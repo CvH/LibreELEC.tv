@@ -1,0 +1,24 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+oe_setup_addon script.moonfin
+
+# Ensure Flutter uses Wayland under cage kiosk compositor
+export GDK_BACKEND=wayland
+export CLUTTER_BACKEND=wayland
+export EGL_PLATFORM=wayland
+
+# Prefer addon bundled libraries first, then Moonfin internal libs, then system
+export LD_LIBRARY_PATH="${ADDON_DIR}/lib.private:${ADDON_DIR}/moonfin/lib:${LD_LIBRARY_PATH}"
+
+# Runtime application storage paths for database and cache
+export XDG_DATA_HOME="${ADDON_HOME}/data"
+export XDG_CONFIG_HOME="${ADDON_HOME}/config"
+export XDG_CACHE_HOME="${ADDON_HOME}/cache"
+
+mkdir -p "${XDG_DATA_HOME}" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
+
+# Start Moonfin executable with any arguments forwarded
+exec "${ADDON_DIR}/moonfin/moonfin" "$@"
