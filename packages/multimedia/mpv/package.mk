@@ -7,19 +7,11 @@ PKG_SHA256="ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209"
 PKG_LICENSE="GPL-2.0-or-later"
 PKG_SITE="https://mpv.io/"
 PKG_URL="https://github.com/mpv-player/mpv/archive/v${PKG_VERSION}.tar.gz"
-PKG_DEPENDS_TARGET="toolchain ffmpeg libass alsa-lib mesa zlib libplacebo"
-PKG_DEPENDS_CONFIG="libplacebo"
+PKG_DEPENDS_TARGET="toolchain ffmpeg libass alsa-lib mesa zlib libplacebo libdrm libdisplay-info wayland wayland-protocols libxkbcommon"
+PKG_DEPENDS_CONFIG="libplacebo wayland wayland-protocols"
 PKG_SECTION="multimedia"
 PKG_SHORTDESC="A free, open-source, and cross-platform media player (libmpv library)"
 PKG_LONGDESC="mpv is a media player based on MPlayer and mplayer2 with a shared library libmpv."
-
-if [ -d "$(get_pkg_directory wayland)" ]; then
-  PKG_DEPENDS_TARGET+=" wayland wayland-protocols"
-fi
-
-if [ -d "$(get_pkg_directory libva)" ]; then
-  PKG_DEPENDS_TARGET+=" libva"
-fi
 
 PKG_MESON_OPTS_TARGET="-Dlibmpv=true \
                        -Dcplayer=false \
@@ -33,7 +25,8 @@ PKG_MESON_OPTS_TARGET="-Dlibmpv=true \
                        -Degl=enabled \
                        -Dwayland=enabled \
                        -Ddrm=enabled \
-                       -Dvaapi=auto \
+                       -Dx11=disabled \
+                       -Dvulkan=disabled \
                        -Diconv=disabled \
                        -Duchardet=disabled \
                        -Drubberband=disabled \
@@ -41,6 +34,13 @@ PKG_MESON_OPTS_TARGET="-Dlibmpv=true \
                        -Dlibarchive=disabled \
                        -Dlibbluray=disabled \
                        -Ddvdnav=disabled"
+
+if [ "${VAAPI_SUPPORT}" = "yes" ]; then
+  PKG_DEPENDS_TARGET+=" libva"
+  PKG_MESON_OPTS_TARGET+=" -Dvaapi=enabled"
+else
+  PKG_MESON_OPTS_TARGET+=" -Dvaapi=disabled"
+fi
 
 post_makeinstall_target() {
   # Provide compatibility symlink for bundles expecting libmpv.so.1
