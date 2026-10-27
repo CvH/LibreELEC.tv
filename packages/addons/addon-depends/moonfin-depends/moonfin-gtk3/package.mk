@@ -6,7 +6,8 @@
 PKG_NAME="moonfin-gtk3"
 PKG_LONGDESC="gtk3 with Wayland support for Moonfin"
 PKG_URL=""
-PKG_DEPENDS_TARGET+=" wayland wayland-protocols"
+PKG_DEPENDS_TARGET="toolchain at-spi2-core atk cairo gdk-pixbuf glib libepoxy pango libxkbcommon wayland wayland-protocols"
+PKG_DEPENDS_CONFIG="pango gdk-pixbuf shared-mime-info wayland wayland-protocols"
 PKG_DEPENDS_UNPACK+=" gtk3"
 PKG_BUILD_FLAGS="-sysroot"
 
@@ -25,7 +26,7 @@ PKG_MESON_OPTS_TARGET="-Dbroadway_backend=false \
                        -Dwin32_backend=false \
                        -Dxinerama=no \
                        -Dbuiltin_immodules=yes \
-                       -Dx11_backend=true"
+                       -Dx11_backend=false"
 
 unpack() {
   mkdir -p ${PKG_BUILD}
