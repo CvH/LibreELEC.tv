@@ -3,7 +3,7 @@
 
 PKG_NAME="moonfin"
 PKG_VERSION="2.7.0"
-PKG_REV="1"
+PKG_REV="2"
 PKG_ARCH="x86_64 aarch64"
 PKG_LICENSE="GPL-3.0-or-later"
 PKG_SITE="https://github.com/Moonfin-Client/Moonfin-Core"
@@ -19,7 +19,7 @@ case "${ARCH}" in
 esac
 PKG_SOURCE_NAME="moonfin-${PKG_VERSION}-${ARCH}.tar.gz"
 
-PKG_DEPENDS_TARGET="toolchain mpv libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu pango libepoxy"
+PKG_DEPENDS_TARGET="toolchain mpv libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu icu pango libepoxy wayland"
 PKG_SECTION="script"
 PKG_SHORTDESC="Moonfin: Jellyfin and Emby Client"
 PKG_LONGDESC="Moonfin is a modern, fast, and feature-rich Jellyfin and Emby media client built with Flutter."
@@ -57,6 +57,12 @@ addon() {
 
   # libsecret
   cp -P $(get_install_dir libsecret)/usr/lib/libsecret-1.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+
+  # icu
+  cp -P $(get_install_dir icu)/usr/lib/libicu*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+
+  # Wayland
+  cp -L $(get_install_dir wayland)/usr/lib/libwayland-*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
 
   # GTK3 (with Wayland support from moonfin-gtk3) and display stack libraries
   cp -P $(get_install_dir moonfin-gtk3)/usr/lib/libgtk-3.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"

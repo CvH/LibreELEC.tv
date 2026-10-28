@@ -15,8 +15,13 @@ export GDK_BACKEND=wayland
 export CLUTTER_BACKEND=wayland
 export EGL_PLATFORM=wayland
 
-# Prefer addon bundled libraries first, then Moonfin internal libs, then system
-export LD_LIBRARY_PATH="${ADDON_DIR}/lib.private:${ADDON_DIR}/moonfin/lib:${LD_LIBRARY_PATH}"
+# Prefer addon bundled libraries first, then externalhelper runtime, then Moonfin internal libs, then system
+HELPER_DIR="/storage/.kodi/addons/tools.externalhelper"
+if [ -d "${HELPER_DIR}/lib.private" ]; then
+  export LD_LIBRARY_PATH="${ADDON_DIR}/lib.private:${HELPER_DIR}/lib.private:${ADDON_DIR}/moonfin/lib:${LD_LIBRARY_PATH}"
+else
+  export LD_LIBRARY_PATH="${ADDON_DIR}/lib.private:${ADDON_DIR}/moonfin/lib:${LD_LIBRARY_PATH}"
+fi
 
 # Runtime application storage paths for database and cache
 export XDG_DATA_HOME="${ADDON_HOME}/data"
@@ -26,4 +31,8 @@ export XDG_CACHE_HOME="${ADDON_HOME}/cache"
 mkdir -p "${XDG_DATA_HOME}" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
 
 # Start Moonfin executable with any arguments forwarded
-exec "${ADDON_DIR}/moonfin/moonfin" "$@"
+if [ -x "${ADDON_DIR}/moonfin/moonfin-bin" ]; then
+  exec "${ADDON_DIR}/moonfin/moonfin-bin" "$@"
+else
+  exec "${ADDON_DIR}/moonfin/moonfin" "$@"
+fi
