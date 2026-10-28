@@ -5,7 +5,10 @@
       <group id="1">
         <setting id="custom_args" type="string" label="Custom Arguments">
           <level>0</level>
-          <default></default>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
           <control type="edit" format="string">
             <heading>Custom Arguments</heading>
           </control>

@@ -5,6 +5,11 @@
 . /etc/profile
 oe_setup_addon script.moonfin
 
+# Create any required runtime symlinks on writable storage
+[ ! -e "${ADDON_DIR}/moonfin/lib/libsqlite3.so" ] && ln -sf libsqlite3.so.0 "${ADDON_DIR}/moonfin/lib/libsqlite3.so" 2>/dev/null || true
+[ ! -e "${ADDON_DIR}/lib.private/libmpv.so" ] && ln -sf libmpv.so.1 "${ADDON_DIR}/lib.private/libmpv.so" 2>/dev/null || true
+[ ! -e "${ADDON_DIR}/lib.private/libmpv.so.2" ] && ln -sf libmpv.so.1 "${ADDON_DIR}/lib.private/libmpv.so.2" 2>/dev/null || true
+
 # Ensure Flutter uses Wayland under cage kiosk compositor
 export GDK_BACKEND=wayland
 export CLUTTER_BACKEND=wayland

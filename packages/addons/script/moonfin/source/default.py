@@ -92,7 +92,10 @@ def main():
 
     os.chmod(LAUNCHER, 0o755)
 
-    custom_args = ADDON.getSettingString('custom_args')
+    try:
+        custom_args = ADDON.getSettingString('custom_args')
+    except Exception:
+        custom_args = ''
     args = []
     if custom_args and custom_args.strip():
         args = custom_args.strip().split()
