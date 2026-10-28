@@ -30,8 +30,11 @@ export XDG_CACHE_HOME="${ADDON_HOME}/cache"
 
 mkdir -p "${XDG_DATA_HOME}" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
 
+# Ensure binaries have executable permissions
+chmod 755 "${ADDON_DIR}/bin/moonfin-start" "${ADDON_DIR}/moonfin/moonfin" "${ADDON_DIR}/moonfin/moonfin-bin" 2>/dev/null || true
+
 # Start Moonfin executable with any arguments forwarded
-if [ -x "${ADDON_DIR}/moonfin/moonfin-bin" ]; then
+if [ -f "${ADDON_DIR}/moonfin/moonfin-bin" ]; then
   exec "${ADDON_DIR}/moonfin/moonfin-bin" "$@"
 else
   exec "${ADDON_DIR}/moonfin/moonfin" "$@"

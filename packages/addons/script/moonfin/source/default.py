@@ -91,6 +91,13 @@ def main():
             f.write(VERSION)
 
     os.chmod(LAUNCHER, 0o755)
+    for b in ('moonfin', 'moonfin-bin'):
+        bp = os.path.join(moonfin_dir, b)
+        if os.path.isfile(bp):
+            try:
+                os.chmod(bp, 0o755)
+            except Exception:
+                pass
 
     try:
         custom_args = ADDON.getSettingString('custom_args')
