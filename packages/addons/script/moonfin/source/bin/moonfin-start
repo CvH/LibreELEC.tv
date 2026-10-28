@@ -16,7 +16,19 @@ export PATH="${ADDON_DIR}/bin:${PATH}"
 # Ensure Flutter uses Wayland under cage kiosk compositor
 export GDK_BACKEND=wayland
 export CLUTTER_BACKEND=wayland
-export EGL_PLATFORM=wayland
+
+# Mesa on LibreELEC lacks EGL_PLATFORM_WAYLAND, so force Flutter software renderer
+export FLUTTER_LINUX_RENDERER=software
+
+# Ensure session dbus socket is accessible at /run/user/0/bus for MPRIS and notifications
+if [ -n "${DBUS_SESSION_BUS_ADDRESS}" ]; then
+  DBUS_SOCKET="${DBUS_SESSION_BUS_ADDRESS#unix:path=}"
+  DBUS_SOCKET="${DBUS_SOCKET%%,*}"
+  if [ -S "${DBUS_SOCKET}" ]; then
+    mkdir -p /run/user/0
+    ln -sf "${DBUS_SOCKET}" /run/user/0/bus 2>/dev/null || true
+  fi
+fi
 
 # Prefer addon bundled libraries first, then externalhelper runtime, then Moonfin internal libs, then system
 HELPER_DIR="/storage/.kodi/addons/tools.externalhelper"
