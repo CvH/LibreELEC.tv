@@ -11,8 +11,70 @@ mkdir -p "${XDG_RUNTIME_DIR}"
 chmod 0700 "${XDG_RUNTIME_DIR}"
 
 mydir=$(dirname "$0")
+addondir=$(dirname "${mydir}")
+
+# Generate native Sway output directive from KODI_DISPLAY_CONFIG
+SWAY_OUTPUTS="${XDG_RUNTIME_DIR}/sway-outputs.conf"
+case "${KODI_DISPLAY_CONFIG}" in
+  3840x2160)
+    echo "output * mode 3840x2160@60Hz position 0,0" > "${SWAY_OUTPUTS}"
+    ;;
+  1920x1080)
+    echo "output * mode 1920x1080@60Hz position 0,0" > "${SWAY_OUTPUTS}"
+    ;;
+  1280x720)
+    echo "output * mode 1280x720@60Hz position 0,0" > "${SWAY_OUTPUTS}"
+    ;;
+  default|"")
+    echo "output * position 0,0" > "${SWAY_OUTPUTS}"
+    ;;
+  *)
+    if [ -f "/storage/.config/sway/${KODI_DISPLAY_CONFIG}" ]; then
+      cp "/storage/.config/sway/${KODI_DISPLAY_CONFIG}" "${SWAY_OUTPUTS}"
+    elif [ -f "${KODI_DISPLAY_CONFIG}" ]; then
+      cp "${KODI_DISPLAY_CONFIG}" "${SWAY_OUTPUTS}"
+    else
+      echo "output * mode ${KODI_DISPLAY_CONFIG} position 0,0" > "${SWAY_OUTPUTS}"
+    fi
+    ;;
+esac
+
+# Save target application command to a runner script
+APP_RUNNER="${XDG_RUNTIME_DIR}/external-app.sh"
+cat > "${APP_RUNNER}" <<EOF
+#!/bin/sh
+exec "$@"
+EOF
+chmod +x "${APP_RUNNER}"
+
+# Configure virtual keyboard (wvkbd)
+OSK_CMD="# Virtual keyboard disabled"
+if [ "${KODI_OSK_ENABLED}" != "false" ]; then
+  OSK_HEIGHT="${KODI_OSK_HEIGHT:-300}"
+  OSK_CMD="exec ${addondir}/bin/wvkbd-mobintl --auto -L ${OSK_HEIGHT}"
+fi
+
+VOL_STEP="${KODI_VOLUME_STEP:-5}"
+
+# Generate sway session config from template
+SWAY_CONF="${XDG_RUNTIME_DIR}/sway.conf"
+sed \
+  -e "s|@ADDONDIR@|${addondir}|g" \
+  -e "s|@XKB_LAYOUT@|${XKB_DEFAULT_LAYOUT:-us}|g" \
+  -e "s|@OUTPUTS_CONF@|${SWAY_OUTPUTS}|g" \
+  -e "s|@OSK_COMMAND@|${OSK_CMD}|g" \
+  -e "s|@VOLUME_STEP@|${VOL_STEP}|g" \
+  -e "s|@APP_RUNNER@|${APP_RUNNER}|g" \
+  "${addondir}/config/sway-kiosk.conf" > "${SWAY_CONF}"
+
+# Check for NVIDIA drivers
+SWAY_ARGS=""
+if lsmod | grep -q 'nvidia'; then
+  export WLR_NO_HARDWARE_CURSORS=1
+  SWAY_ARGS="--unsupported-gpu"
+fi
+export WLR_LIBINPUT_NO_DEVICES=1
 
 dbus-run-session -- \
   "${mydir}/seatd-launch" -p "${mydir}/seatd" -- \
-  "${mydir}/cage" -- \
-  "${mydir}/wayland-session-helper" "$@"
+  "${mydir}/sway" ${SWAY_ARGS} -c "${SWAY_CONF}"

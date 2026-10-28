@@ -143,6 +143,18 @@ def run_external_program(
     else:
         environment['KODI_EXTERNAL_SESSION'] = 'plain'
 
+    osk_enabled = addon.getSettingBool('osk_enabled')
+    if osk_enabled is not None:
+        environment['KODI_OSK_ENABLED'] = 'true' if osk_enabled else 'false'
+
+    osk_height = addon.getSettingInt('osk_height')
+    if osk_height:
+        environment['KODI_OSK_HEIGHT'] = str(osk_height)
+
+    volumestep = addon.getSettingInt('volumestep')
+    if volumestep:
+        environment['KODI_VOLUME_STEP'] = str(volumestep)
+
     if env is not None:
         environment.update(env)
 

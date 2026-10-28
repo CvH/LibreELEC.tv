@@ -53,6 +53,28 @@
                         <heading>30111</heading>
                     </control>
                 </setting>
+                <setting id="osk_enabled" type="boolean" label="30121">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="osk_height" type="integer" label="30122">
+                    <level>0</level>
+                    <default>300</default>
+                    <control type="edit" format="integer">
+                        <heading>30122</heading>
+                    </control>
+                    <dependencies>
+                        <dependency type="visible" setting="osk_enabled" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+                <setting id="volumestep" type="integer" label="30123">
+                    <level>0</level>
+                    <default>5</default>
+                    <control type="edit" format="integer">
+                        <heading>30123</heading>
+                    </control>
+                </setting>
             </group>
         </category>
         <category id="VNC" label="30200">

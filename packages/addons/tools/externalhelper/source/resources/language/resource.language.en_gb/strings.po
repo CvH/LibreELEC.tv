@@ -50,7 +50,7 @@ msgid "Custom display configuration file"
 msgstr ""
 
 msgctxt "#30109"
-msgid "Configuration override files and custom configurations are read from /storage/.config/kanshi"
+msgid "Configuration override files and custom configurations are read from /storage/.config/sway"
 msgstr ""
 
 msgctxt "#30110"
@@ -63,6 +63,18 @@ msgstr ""
 
 msgctxt "#30112"
 msgid "For ALSA devices enter 'ALSA:' followed by the full PCM name like shown in aplay -L\neg ALSA:sysdefault:CARD=MyCard or ALSA:iec958:CARD=MyCard,DEV=1"
+msgstr ""
+
+msgctxt "#30121"
+msgid "Enable on-screen keyboard (wvkbd)"
+msgstr ""
+
+msgctxt "#30122"
+msgid "Keyboard height in pixels"
+msgstr ""
+
+msgctxt "#30123"
+msgid "Volume step size (%)"
 msgstr ""
 
 msgctxt "#30200"

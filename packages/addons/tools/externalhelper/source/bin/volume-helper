@@ -1,0 +1,51 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+ACTION="$1"
+STEP="${2:-5}"
+FIFO="/run/user/$(id -u)/wob.fifo"
+
+get_volume() {
+  if command -v wpctl >/dev/null 2>&1 && wpctl get-volume @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1; then
+    VAL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2 * 100)}')
+    if wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q "MUTED"; then
+      echo "0"
+    else
+      echo "$VAL"
+    fi
+  else
+    amixer sget Master 2>/dev/null | grep -o -E '[0-9]+%' | head -1 | tr -d '%'
+  fi
+}
+
+case "$ACTION" in
+  up)
+    if command -v wpctl >/dev/null 2>&1 && wpctl get-volume @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1; then
+      wpctl set-volume @DEFAULT_AUDIO_SINK@ "${STEP}%+"
+    else
+      amixer -q sset Master "${STEP}%+" 2>/dev/null || amixer -q sset PCM "${STEP}%+" 2>/dev/null
+    fi
+    ;;
+  down)
+    if command -v wpctl >/dev/null 2>&1 && wpctl get-volume @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1; then
+      wpctl set-volume @DEFAULT_AUDIO_SINK@ "${STEP}%-"
+    else
+      amixer -q sset Master "${STEP}%-" 2>/dev/null || amixer -q sset PCM "${STEP}%-" 2>/dev/null
+    fi
+    ;;
+  mute)
+    if command -v wpctl >/dev/null 2>&1 && wpctl get-volume @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1; then
+      wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+    else
+      amixer -q sset Master toggle 2>/dev/null || amixer -q sset PCM toggle 2>/dev/null
+    fi
+    ;;
+esac
+
+# Update wob OSD if FIFO exists
+if [ -p "$FIFO" ]; then
+  VOL=$(get_volume)
+  [ -n "$VOL" ] && echo "$VOL" > "$FIFO" &
+fi
+
