@@ -5,6 +5,9 @@
 . /etc/profile
 oe_setup_addon script.moonfin
 
+# Put addon bin first in PATH so xdg-user-dir is available
+export PATH="${ADDON_DIR}/bin:${PATH}"
+
 # Create any required runtime symlinks on writable storage
 [ ! -e "${ADDON_DIR}/moonfin/lib/libsqlite3.so" ] && ln -sf libsqlite3.so.0 "${ADDON_DIR}/moonfin/lib/libsqlite3.so" 2>/dev/null || true
 [ ! -e "${ADDON_DIR}/lib.private/libmpv.so" ] && ln -sf libmpv.so.1 "${ADDON_DIR}/lib.private/libmpv.so" 2>/dev/null || true
@@ -27,11 +30,22 @@ fi
 export XDG_DATA_HOME="${ADDON_HOME}/data"
 export XDG_CONFIG_HOME="${ADDON_HOME}/config"
 export XDG_CACHE_HOME="${ADDON_HOME}/cache"
+export XDG_DATA_DIRS="${ADDON_DIR}/share:${XDG_DATA_DIRS:-/usr/share}"
 
-mkdir -p "${XDG_DATA_HOME}" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
+mkdir -p "${XDG_DATA_HOME}/Documents" "${XDG_DATA_HOME}/Downloads" "${XDG_DATA_HOME}/Music" "${XDG_DATA_HOME}/Pictures" "${XDG_DATA_HOME}/Videos"
+mkdir -p "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}"
+
+cat << EOC > "${XDG_CONFIG_HOME}/user-dirs.dirs"
+XDG_DOCUMENTS_DIR="${XDG_DATA_HOME}/Documents"
+XDG_DOWNLOAD_DIR="${XDG_DATA_HOME}/Downloads"
+XDG_MUSIC_DIR="${XDG_DATA_HOME}/Music"
+XDG_PICTURES_DIR="${XDG_DATA_HOME}/Pictures"
+XDG_VIDEOS_DIR="${XDG_DATA_HOME}/Videos"
+XDG_DESKTOP_DIR="${XDG_DATA_HOME}/Desktop"
+EOC
 
 # Ensure binaries have executable permissions
-chmod 755 "${ADDON_DIR}/bin/moonfin-start" "${ADDON_DIR}/moonfin/moonfin" "${ADDON_DIR}/moonfin/moonfin-bin" 2>/dev/null || true
+chmod 755 "${ADDON_DIR}/bin/moonfin-start" "${ADDON_DIR}/bin/xdg-user-dir" "${ADDON_DIR}/moonfin/moonfin" "${ADDON_DIR}/moonfin/moonfin-bin" 2>/dev/null || true
 
 # Start Moonfin executable with any arguments forwarded
 if [ -f "${ADDON_DIR}/moonfin/moonfin-bin" ]; then

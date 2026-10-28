@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+# Fallback helper providing standard XDG directory paths for Flutter path_provider
+case "$1" in
+  DOCUMENTS) echo "${XDG_DATA_HOME:-/storage}/Documents" ;;
+  DOWNLOAD)  echo "${XDG_DATA_HOME:-/storage}/Downloads" ;;
+  MUSIC)     echo "${XDG_DATA_HOME:-/storage}/Music" ;;
+  PICTURES)  echo "${XDG_DATA_HOME:-/storage}/Pictures" ;;
+  VIDEOS)    echo "${XDG_DATA_HOME:-/storage}/Videos" ;;
+  DESKTOP)   echo "${XDG_DATA_HOME:-/storage}/Desktop" ;;
+  *)         echo "${XDG_DATA_HOME:-/storage}" ;;
+esac

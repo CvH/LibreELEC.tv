@@ -26,6 +26,11 @@ PKG_MESON_OPTS_TARGET="-Dlibmpv=true \
                        -Dwayland=enabled \
                        -Ddrm=enabled \
                        -Dx11=disabled \
+                       -Dx11-clipboard=disabled \
+                       -Degl-x11=disabled \
+                       -Dvaapi-x11=disabled \
+                       -Dvdpau-gl-x11=disabled \
+                       -Dvdpau=disabled \
                        -Dvulkan=disabled \
                        -Diconv=disabled \
                        -Duchardet=disabled \

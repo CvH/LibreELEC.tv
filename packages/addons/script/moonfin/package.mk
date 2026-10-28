@@ -19,7 +19,7 @@ case "${ARCH}" in
 esac
 PKG_SOURCE_NAME="moonfin-${PKG_VERSION}-${ARCH}.tar.gz"
 
-PKG_DEPENDS_TARGET="toolchain mpv ffmpeg libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu icu pango libepoxy wayland"
+PKG_DEPENDS_TARGET="toolchain mpv ffmpeg libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu icu pango libepoxy wayland shared-mime-info"
 PKG_SECTION="script"
 PKG_SHORTDESC="Moonfin: Jellyfin and Emby Client"
 PKG_LONGDESC="Moonfin is a modern, fast, and feature-rich Jellyfin and Emby media client built with Flutter."
@@ -44,7 +44,12 @@ addon() {
   chmod 755 "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/moonfin-bin"
   touch "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/.version_${PKG_VERSION}"
 
-  # Remove bundled libraries from Moonfin release tarball that collide with LibreELEC builds or pull in X11 dependencies
+  # Build unified webview and GDK X11 stub plugin to avoid WebKit2GTK / GLX / X11 dependencies
+  ${CC} -shared -fPIC -O2 \
+    "${PKG_DIR}/source/src/libwebview_win_floating_plugin_stub.c" \
+    -o "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libwebview_win_floating_plugin.so"
+
+  # Remove bundled libraries from Moonfin release tarball that collide with LibreELEC builds or pull in desktop X11/GLX/WebKit
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libmpv"*
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libsecret"*
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libva"*
@@ -53,14 +58,21 @@ addon() {
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libav"*
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libsw"*
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libpostproc"*
-  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libX11-xcb"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libwebkit2gtk"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libjavascriptcoregtk"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libgstgl"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libX11"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libGL"*
 
-  # Launcher binary script
+  # Launcher binary scripts
   cp -P "${PKG_DIR}/source/bin/moonfin-start" "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/"
-  chmod 755 "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/moonfin-start"
+  cp -P "${PKG_DIR}/source/bin/xdg-user-dir" "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/"
+  chmod 755 "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/moonfin-start" "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/xdg-user-dir"
 
   # mpv (libmpv)
   cp -P $(get_install_dir mpv)/usr/lib/libmpv.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+  patchelf --remove-needed libXfixes.so.3 "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/libmpv.so"* 2>/dev/null || true
+  patchelf --remove-needed libX11.so.6 "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/libmpv.so"* 2>/dev/null || true
 
   # ffmpeg
   cp -P $(get_install_dir ffmpeg)/usr/lib/libav*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
@@ -88,6 +100,12 @@ addon() {
   cp -P $(get_install_dir harfbuzz-icu)/usr/lib/libharfbuzz*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
   cp -P $(get_install_dir pango)/usr/lib/libpango*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
   cp -P $(get_install_dir libepoxy)/usr/lib/libepoxy.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+
+  # Shared MIME database for gdk-pixbuf image format detection
+  mkdir -p "${ADDON_BUILD}/${PKG_ADDON_ID}/share/mime/packages"
+  cp -P $(get_install_dir shared-mime-info)/usr/share/mime/packages/freedesktop.org.xml \
+    "${ADDON_BUILD}/${PKG_ADDON_ID}/share/mime/packages/"
+  ${TOOLCHAIN}/bin/update-mime-database "${ADDON_BUILD}/${PKG_ADDON_ID}/share/mime"
 
   # In zip archives symlinks become duplicated full files. Reduce every library
   # chain in lib.private and moonfin/lib to a single regular file (its SONAME).
@@ -122,10 +140,14 @@ for real, symlinks in by_real.items():
   done
 
   # Remove any libraries from moonfin/lib that are already provided by LibreELEC in lib.private
+  # Preserve ICU 70 which is required by bundled libxml2/libarchive
   for f in "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"*.so*; do
     [ -e "${f}" ] || continue
     name="$(basename "${f}")"
     base="${name%%.so*}.so"
+    case "${base}" in
+      libicu*|libwebview*) continue ;;
+    esac
     rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/${name}"*
     rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/${base}"*
   done
