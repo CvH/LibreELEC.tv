@@ -19,7 +19,7 @@ case "${ARCH}" in
 esac
 PKG_SOURCE_NAME="moonfin-${PKG_VERSION}-${ARCH}.tar.gz"
 
-PKG_DEPENDS_TARGET="toolchain mpv libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu icu pango libepoxy wayland"
+PKG_DEPENDS_TARGET="toolchain mpv ffmpeg libsecret moonfin-gtk3 at-spi2-core atk cairo gdk-pixbuf harfbuzz-icu icu pango libepoxy wayland"
 PKG_SECTION="script"
 PKG_SHORTDESC="Moonfin: Jellyfin and Emby Client"
 PKG_LONGDESC="Moonfin is a modern, fast, and feature-rich Jellyfin and Emby media client built with Flutter."
@@ -44,9 +44,16 @@ addon() {
   chmod 755 "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/moonfin-bin"
   touch "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/.version_${PKG_VERSION}"
 
-  # Remove bundled libraries from Moonfin release tarball that collide with LibreELEC builds
-  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libmpv.so"*
+  # Remove bundled libraries from Moonfin release tarball that collide with LibreELEC builds or pull in X11 dependencies
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libmpv"*
   rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libsecret"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libva"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libvdpau"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libSDL2"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libav"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libsw"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libpostproc"*
+  rm -f "${ADDON_BUILD}/${PKG_ADDON_ID}/moonfin/lib/libX11-xcb"*
 
   # Launcher binary script
   cp -P "${PKG_DIR}/source/bin/moonfin-start" "${ADDON_BUILD}/${PKG_ADDON_ID}/bin/"
@@ -54,6 +61,11 @@ addon() {
 
   # mpv (libmpv)
   cp -P $(get_install_dir mpv)/usr/lib/libmpv.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+
+  # ffmpeg
+  cp -P $(get_install_dir ffmpeg)/usr/lib/libav*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+  cp -P $(get_install_dir ffmpeg)/usr/lib/libsw*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
+  cp -P $(get_install_dir ffmpeg)/usr/lib/libpostproc*.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
 
   # libsecret
   cp -P $(get_install_dir libsecret)/usr/lib/libsecret-1.so* "${ADDON_BUILD}/${PKG_ADDON_ID}/lib.private/"
