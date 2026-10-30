@@ -11,8 +11,29 @@ mkdir -p "${XDG_RUNTIME_DIR}"
 chmod 0700 "${XDG_RUNTIME_DIR}"
 
 mydir=$(dirname "$0")
+addondir=$(dirname "${mydir}")
+
+# Locate Hyprland configuration (allow user override in /storage/.config/hyprland/hyprland.lua)
+HYPRLAND_CONFIG="/storage/.config/hyprland/hyprland.lua"
+if [ ! -f "${HYPRLAND_CONFIG}" ]; then
+  HYPRLAND_CONFIG="${addondir}/config/hyprland-kiosk.lua"
+fi
+
+# Prepare runner script for hyprland autostart
+RUNNER_SCRIPT="${XDG_RUNTIME_DIR}/externalhelper-runner.sh"
+{
+  echo '#!/bin/sh'
+  echo -n 'exec "'"${mydir}/wayland-session-helper"'"'
+  for arg in "$@"; do
+    printf ' %q' "${arg}"
+  done
+  echo ''
+} > "${RUNNER_SCRIPT}"
+chmod +x "${RUNNER_SCRIPT}"
+export EXTERNALHELPER_RUNNER="${RUNNER_SCRIPT}"
 
 dbus-run-session -- \
   "${mydir}/seatd-launch" -p "${mydir}/seatd" -- \
-  "${mydir}/cage" -- \
-  "${mydir}/wayland-session-helper" "$@"
+  "${mydir}/Hyprland" --config "${HYPRLAND_CONFIG}"
+
+rm -f "${RUNNER_SCRIPT}"

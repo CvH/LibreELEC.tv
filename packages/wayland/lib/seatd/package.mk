@@ -10,10 +10,6 @@ PKG_URL="https://git.sr.ht/~kennylevinsen/seatd/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain systemd"
 PKG_LONGDESC="A minimal seat management daemon, and a universal seat management library."
 
-if [ "${DISPLAYSERVER}" != "wl" ]; then
-  PKG_BUILD_FLAGS="-sysroot"
-fi
-
 PKG_MESON_OPTS_TARGET="-Dlibseat-logind=systemd \
                        -Dlibseat-seatd=enabled \
                        -Dlibseat-builtin=disabled \

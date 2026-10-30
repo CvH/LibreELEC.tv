@@ -38,9 +38,12 @@ WAYVNC_PID=$(${addondir}/bin/wayvnc-session-helper)
 "$@"
 
 # stop kanshi when the session ends
-kill -TERM "${KANSHI_PID}"
+kill -TERM "${KANSHI_PID}" 2>/dev/null || true
 
 # stop wayvnc when the session ends
 if [ -n "${WAYVNC_PID}" ]; then
-  kill -TERM "${WAYVNC_PID}"
+  kill -TERM "${WAYVNC_PID}" 2>/dev/null || true
 fi
+
+# notify Hyprland to exit cleanly
+"${addondir}/bin/hyprctl" dispatch 'hl.dsp.exit()' 2>/dev/null || "${addondir}/bin/hyprctl" dispatch exit 2>/dev/null || true

@@ -1,0 +1,114 @@
+From a37938d3c1119ae25b354c36a772ab54cfa6437f Mon Sep 17 00:00:00 2001
+From: Antigravity <antigravity@libreelec.tv>
+Date: Fri, 30 Oct 2026 10:42:15 +0100
+Subject: [PATCH] image: make librsvg and libwebp optional
+
+---
+ CMakeLists.txt      | 35 ++++++++++++++++++++++++++++++++---
+ src/image/Image.cpp | 16 ++++++++++++++++
+ 2 files changed, 48 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 04a379f..18faa25 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -61,10 +61,32 @@ pkg_check_modules(
+   pangocairo
+   hyprutils
+   libjpeg
+-  libwebp
+   libmagic
+-  libpng
+-  librsvg-2.0)
++  libpng)
++
++pkg_check_modules(
++  WEBP
++  IMPORTED_TARGET
++  libwebp
++)
++if(NOT WEBP_FOUND)
++  file(GLOB_RECURSE WEBPFILES CONFIGURE_DEPENDS "src/*Webp.cpp")
++  list(REMOVE_ITEM SRCFILES ${WEBPFILES})
++else()
++  add_compile_definitions(WEBP_FOUND)
++endif()
++
++pkg_check_modules(
++  RSVG
++  IMPORTED_TARGET
++  librsvg-2.0
++)
++if(NOT RSVG_FOUND)
++  file(GLOB_RECURSE SVGFILES CONFIGURE_DEPENDS "src/*Svg.cpp")
++  list(REMOVE_ITEM SRCFILES ${SVGFILES})
++else()
++  add_compile_definitions(RSVG_FOUND)
++endif()
+ 
+ pkg_check_modules(
+   JXL
+@@ -101,6 +123,13 @@ target_include_directories(
+ set_target_properties(hyprgraphics PROPERTIES VERSION ${HYPRGRAPHICS_VERSION}
+                                               SOVERSION 4)
+ target_link_libraries(hyprgraphics PkgConfig::deps)
++if(WEBP_FOUND)
++  target_link_libraries(hyprgraphics PkgConfig::WEBP)
++endif()
++
++if(RSVG_FOUND)
++  target_link_libraries(hyprgraphics PkgConfig::RSVG)
++endif()
+ if(JXL_FOUND)
+   target_link_libraries(hyprgraphics PkgConfig::JXL)
+ endif()
+diff --git a/src/image/Image.cpp b/src/image/Image.cpp
+index 8709d1e..5a3e53d 100644
+--- a/src/image/Image.cpp
++++ b/src/image/Image.cpp
+@@ -8,9 +8,13 @@
+ #ifdef HEIF_FOUND
+ #include "formats/Avif.hpp"
+ #endif
++#ifdef WEBP_FOUND
+ #include "formats/Webp.hpp"
++#endif
+ #include "formats/Png.hpp"
++#ifdef RSVG_FOUND
+ #include "formats/Svg.hpp"
++#endif
+ #include <magic.h>
+ #include <format>
+ 
+@@ -36,7 +40,11 @@ Hyprgraphics::CImage::CImage(std::span<const uint8_t> data, eImageFormat format,
+ #else
+         case IMAGE_FORMAT_AVIF: lastError = "hyprgraphics compiled without HEIF support"; return;
+ #endif
++#ifdef RSVG_FOUND
+         case IMAGE_FORMAT_SVG: CAIROSURFACE = SVG::createSurfaceFromData(data, size); break;
++#else
++        case IMAGE_FORMAT_SVG: lastError = "hyprgraphics compiled without SVG support"; return;
++#endif
+         default: lastError = "Currently only PNG and AVIF images are supported for embedding"; return;
+     }
+ 
+@@ -81,8 +89,16 @@ Hyprgraphics::CImage::CImage(const std::string& path, const Vector2D& size) : fi
+         case IMAGE_FORMAT_JXL: lastError = "hyprgraphics compiled without JXL support"; return;
+ #endif
+         case IMAGE_FORMAT_JPEG: CAIROSURFACE = JPEG::createSurfaceFromJPEG(path); break;
++#ifdef RSVG_FOUND
+         case IMAGE_FORMAT_SVG: CAIROSURFACE = SVG::createSurfaceFromSVG(path, size); break;
++#else
++        case IMAGE_FORMAT_SVG: lastError = "hyprgraphics compiled without SVG support"; return;
++#endif
++#ifdef WEBP_FOUND
+         case IMAGE_FORMAT_WEBP: CAIROSURFACE = WEBP::createSurfaceFromWEBP(path); break;
++#else
++        case IMAGE_FORMAT_WEBP: lastError = "hyprgraphics compiled without WEBP support"; return;
++#endif
+         default: lastError = "internal error"; return;
+     }
+ 
+-- 
+2.53.0
+

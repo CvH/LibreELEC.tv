@@ -1,0 +1,91 @@
+From b4b2691b801919e4e704e73d3c9567bf62c493ea Mon Sep 17 00:00:00 2001
+From: Antigravity <antigravity@libreelec.tv>
+Date: Fri, 30 Oct 2026 10:45:21 +0100
+Subject: [PATCH] bell: make canberra optional via NO_CANBERRA
+
+---
+ CMakeLists.txt          | 15 ++++++++++++++-
+ src/bell/BellPlayer.cpp | 15 +++++++++++++++
+ 2 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6da2ff5..2716e4f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -286,9 +286,13 @@ pkg_check_modules(deps
+   re2
+   muparser
+   lcms2
+-  libcanberra
+ )
+ 
++option(NO_CANBERRA "Disable libcanberra sound bell" OFF)
++if(NOT NO_CANBERRA)
++  pkg_check_modules(canberra REQUIRED IMPORTED_TARGET GLOBAL libcanberra)
++endif()
++
+ pkg_search_module(LUA REQUIRED IMPORTED_TARGET GLOBAL lua55 lua5.5 lua-55 lua-5.5 lua>=5.5 lua<5.6)
+ 
+ find_package(hyprwayland-scanner 0.3.10 REQUIRED)
+@@ -297,6 +301,11 @@ file(GLOB_RECURSE SRCFILES "src/*.cpp")
+ get_filename_component(FULL_MAIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp ABSOLUTE)
+ list(REMOVE_ITEM SRCFILES "${FULL_MAIN_PATH}")
+ 
++if(NO_CANBERRA)
++  add_compile_definitions(NO_CANBERRA)
++  list(REMOVE_ITEM SRCFILES "${CMAKE_CURRENT_SOURCE_DIR}/src/bell/impl/Canberra.cpp")
++endif()
++
+ set(TRACY_CPP_FILES "")
+ if(USE_TRACY)
+   set(TRACY_CPP_FILES "subprojects/tracy/public/TracyClient.cpp")
+@@ -458,6 +467,10 @@ target_link_libraries(
+   PkgConfig::LUA
+ )
+ 
++if(NOT NO_CANBERRA)
++  target_link_libraries(hyprland_lib PUBLIC PkgConfig::canberra)
++endif()
++
+ target_link_libraries(
+   Hyprland
+   ${LIBRT}
+diff --git a/src/bell/BellPlayer.cpp b/src/bell/BellPlayer.cpp
+index cb289d5..a6c3a07 100644
+--- a/src/bell/BellPlayer.cpp
++++ b/src/bell/BellPlayer.cpp
+@@ -1,6 +1,9 @@
+ #include "BellPlayer.hpp"
+ 
++#if !defined(NO_CANBERRA)
+ #include "impl/Canberra.hpp"
++#endif
++#include "impl/Impl.hpp"
+ 
+ using namespace Bell;
+ 
+@@ -9,9 +12,21 @@ UP<CBellPlayer>& Bell::player() {
+     return p;
+ }
+ 
++#if defined(NO_CANBERRA)
++namespace {
++    class CDummyBellImpl : public IBellImpl {
++      public:
++        virtual void play() const override {}
++    };
++}
++CBellPlayer::CBellPlayer() : m_impl(makeUnique<CDummyBellImpl>()) {
++    ;
++}
++#else
+ CBellPlayer::CBellPlayer() : m_impl(makeUnique<CCanberraImpl>()) {
+     ;
+ }
++#endif
+ 
+ void CBellPlayer::play() const {
+     m_impl->play();
+-- 
+2.53.0
+

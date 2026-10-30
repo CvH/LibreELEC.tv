@@ -17,3 +17,12 @@ configure_host() {
 
   ./configure --prefix=${TOOLCHAIN} --libexecdir=${TOOLCHAIN}/lib
 }
+
+post_makeinstall_host() {
+  mkdir -p ${SYSROOT_PREFIX}/usr/share/pkgconfig
+  if [ -f ${TOOLCHAIN}/share/pkgconfig/hwdata.pc ]; then
+    sed -e "s|^prefix=.*|prefix=/usr|" ${TOOLCHAIN}/share/pkgconfig/hwdata.pc > ${SYSROOT_PREFIX}/usr/share/pkgconfig/hwdata.pc
+  fi
+  mkdir -p ${SYSROOT_PREFIX}/usr/share/hwdata
+  cp -rf ${TOOLCHAIN}/share/hwdata/* ${SYSROOT_PREFIX}/usr/share/hwdata/
+}

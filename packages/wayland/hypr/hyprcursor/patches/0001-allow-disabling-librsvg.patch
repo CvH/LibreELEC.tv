@@ -1,0 +1,84 @@
+From 746b2584114599d41d0d33142f7e545c81f562d9 Mon Sep 17 00:00:00 2001
+From: Antigravity <antigravity@libreelec.tv>
+Date: Fri, 30 Oct 2026 10:40:32 +0100
+Subject: [PATCH] build: allow disabling librsvg dependency via NO_SVG
+
+---
+ CMakeLists.txt               | 22 +++++++++++++++++-----
+ libhyprcursor/hyprcursor.cpp |  7 +++++++
+ 2 files changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c1474c7..c0ab025 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -32,16 +32,28 @@ add_compile_options(
+ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+ 
+ find_package(PkgConfig REQUIRED)
+-pkg_check_modules(
+-  deps
+-  REQUIRED
+-  IMPORTED_TARGET
++option(NO_SVG "Disable SVG support via librsvg" OFF)
++
++set(HYPRCURSOR_DEPS
+   hyprlang>=0.4.2
+   libzip
+   cairo
+-  librsvg-2.0
+   tomlplusplus)
+ 
++if(NOT NO_SVG)
++  list(APPEND HYPRCURSOR_DEPS librsvg-2.0)
++endif()
++
++pkg_check_modules(
++  deps
++  REQUIRED
++  IMPORTED_TARGET
++  ${HYPRCURSOR_DEPS})
++
++if(NO_SVG)
++  add_compile_definitions(NO_SVG)
++endif()
++
+ if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES DEBUG)
+   message(STATUS "Configuring hyprcursor in Debug")
+   add_compile_definitions(HYPRLAND_DEBUG)
+diff --git a/libhyprcursor/hyprcursor.cpp b/libhyprcursor/hyprcursor.cpp
+index 7c71538..9d5c669 100644
+--- a/libhyprcursor/hyprcursor.cpp
++++ b/libhyprcursor/hyprcursor.cpp
+@@ -10,7 +10,9 @@
+ #include <cstring>
+ #include <algorithm>
+ #include <cmath>
++#if !defined(NO_SVG)
+ #include <librsvg/rsvg.h>
++#endif
+ 
+ #include "manifest.hpp"
+ #include "meta.hpp"
+@@ -556,6 +558,10 @@ bool CHyprcursorManager::loadThemeStyle(const SCursorStyleInfo& info) {
+                 cairo_paint(PCAIRO);
+                 cairo_restore(PCAIRO);
+ 
++#if defined(NO_SVG)
++                Debug::log(HC_LOG_ERR, logFn, "Failed reading svg: SVG support disabled");
++                return false;
++#else
+                 GError*     error  = nullptr;
+                 RsvgHandle* handle = rsvg_handle_new_from_data((unsigned char*)f->data, f->dataLen, &error);
+ 
+@@ -576,6 +582,7 @@ bool CHyprcursorManager::loadThemeStyle(const SCursorStyleInfo& info) {
+                 cairo_surface_flush(newImage->cairoSurface);
+                 cairo_destroy(PCAIRO);
+                 g_object_unref(handle);
++#endif
+             }
+         } else {
+             Debug::log(HC_LOG_ERR, logFn, "Invalid shapetype in loadThemeStyle");
+-- 
+2.53.0
+

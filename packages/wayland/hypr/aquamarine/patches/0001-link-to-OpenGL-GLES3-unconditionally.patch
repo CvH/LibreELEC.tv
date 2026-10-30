@@ -1,0 +1,25 @@
+From d7578c9834bb48d3a0fe1165c56cd67d4217a9a6 Mon Sep 17 00:00:00 2001
+From: LibreELEC <developer@libreelec.tv>
+Date: Sat, 7 Nov 2026 13:23:36 +0100
+Subject: [PATCH] link to OpenGL::GLES3 unconditionally
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cc263b4..703d7e4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -71,7 +71,7 @@ target_include_directories(
+   PRIVATE "./src" "./src/include" "./protocols" "${CMAKE_BINARY_DIR}")
+ set_target_properties(aquamarine PROPERTIES VERSION ${AQUAMARINE_VERSION}
+                                             SOVERSION 14)
+-target_link_libraries(aquamarine OpenGL::EGL OpenGL::OpenGL PkgConfig::deps Threads::Threads)
++target_link_libraries(aquamarine OpenGL::EGL OpenGL::GLES3 PkgConfig::deps Threads::Threads)
+ 
+ check_include_file("sys/timerfd.h" HAS_TIMERFD)
+ pkg_check_modules(epoll IMPORTED_TARGET epoll-shim)
+-- 
+2.53.0
+
