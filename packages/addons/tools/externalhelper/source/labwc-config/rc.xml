@@ -12,22 +12,52 @@
     <dropShadows>no</dropShadows>
   </theme>
 
+  <resize>
+    <minimumArea>0</minimumArea>
+    <popupShow>Never</popupShow>
+  </resize>
+
   <windowRules>
-    <windowRule identifier="*" serverDecoration="no">
+    <windowRule identifier="*" serverDecoration="no" ignoreConfigureRequest="yes" skipWindowSwitcher="yes" skipTaskbar="yes">
       <action name="Maximize" />
     </windowRule>
   </windowRules>
 
-  <!-- Disable right-click desktop menu in kiosk mode -->
+  <!-- Kiosk mode: suppress default drag-to-resize/move and desktop menu without swallowing clicks -->
   <mouse>
     <context name="Root">
+      <mousebind button="Left" action="Press">
+        <action name="Focus" />
+      </mousebind>
     </context>
   </mouse>
 
   <keyboard>
+    <!-- Standard window closing and session exit shortcuts -->
+    <keybind key="A-F4">
+      <action name="Close" />
+    </keybind>
+    <keybind key="A-Escape">
+      <action name="Exit" />
+    </keybind>
+    <keybind key="W-q">
+      <action name="Close" />
+    </keybind>
+    <keybind key="C-A-BackSpace">
+      <action name="Exit" />
+    </keybind>
+
+    <!-- TV Remote Control shortcuts to return to Kodi -->
+    <keybind key="XF86HomePage">
+      <action name="Exit" />
+    </keybind>
+    <keybind key="XF86AudioStop">
+      <action name="Exit" />
+    </keybind>
+
     <!-- Toggle on-screen virtual keyboard (wvkbd) -->
     <keybind key="C-A-k">
-      <action name="Execute" command="pkill -SIGRTMIN wvkbd-mobintl" />
+      <action name="Execute" command="killall -SIGRTMIN wvkbd-mobintl" />
     </keybind>
   </keyboard>
 </labwc_config>

@@ -6,6 +6,11 @@
 
 oe_setup_addon tools.externalhelper
 
+# Fallback for settings version 4+ if oe_setup_addon did not parse element values
+if [ -z "${WVKBD_ENABLE}" ] && [ -f "${ADDON_HOME}/settings.xml" ]; then
+  eval $(xmlstarlet sel -t -m settings/setting -v @id -o "=" -v . -n "${ADDON_HOME}/settings.xml" 2>/dev/null | grep -E '^WVKBD_' | sed -e "s/'/'\\\\''/g; s/=/='/; s/$/'/")
+fi
+
 # exit if wvkbd is not enabled
 if [ "${WVKBD_ENABLE}" != "true" ]; then
   exit 0
@@ -14,7 +19,7 @@ fi
 addondir=$(dirname "$(dirname "$0")")
 
 WVKBD_HEIGHT="${WVKBD_HEIGHT:-280}"
-WVKBD_OPTS="--layer overlay -L ${WVKBD_HEIGHT}"
+WVKBD_OPTS="-H ${WVKBD_HEIGHT} -L ${WVKBD_HEIGHT} --non-exclusive"
 
 if [ "${WVKBD_START_HIDDEN}" = "true" ]; then
   WVKBD_OPTS="${WVKBD_OPTS} --hidden"
@@ -22,4 +27,3 @@ fi
 
 ${addondir}/bin/wvkbd-mobintl ${WVKBD_OPTS} >&2 &
 echo "$!"
-

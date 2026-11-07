@@ -6,6 +6,11 @@
 
 oe_setup_addon tools.externalhelper
 
+# Fallback for settings version 4+ if oe_setup_addon did not parse element values
+if [ -z "${WAYVNC_ENABLE}" ] && [ -f "${ADDON_HOME}/settings.xml" ]; then
+  eval $(xmlstarlet sel -t -m settings/setting -v @id -o "=" -v . -n "${ADDON_HOME}/settings.xml" 2>/dev/null | grep -E '^WAYVNC_' | sed -e "s/'/'\\\\''/g; s/=/='/; s/$/'/")
+fi
+
 # exit if wayvnc is not enabled
 if [ "${WAYVNC_ENABLE}" != "true" ]; then
   exit 0
