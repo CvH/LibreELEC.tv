@@ -66,8 +66,17 @@
       <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/alsa-volume mute" />
     </keybind>
 
-    <!-- Toggle on-screen virtual keyboard (wvkbd) -->
+    <!-- Toggle on-screen virtual keyboard (wvkbd) via remote or keyboard -->
     <keybind key="C-A-k">
+      <action name="Execute" command="killall -SIGRTMIN wvkbd-mobintl" />
+    </keybind>
+    <keybind key="XF86Search">
+      <action name="Execute" command="killall -SIGRTMIN wvkbd-mobintl" />
+    </keybind>
+    <keybind key="XF86Info">
+      <action name="Execute" command="killall -SIGRTMIN wvkbd-mobintl" />
+    </keybind>
+    <keybind key="XF86Blue">
       <action name="Execute" command="killall -SIGRTMIN wvkbd-mobintl" />
     </keybind>
   </keyboard>

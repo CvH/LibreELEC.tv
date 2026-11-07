@@ -2,11 +2,11 @@
 # Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
 
 PKG_NAME="wvkbd"
-PKG_VERSION="0.20"
-PKG_SHA256="b5fee580f826190fda94c06267e52e7c09f0fbbec2b02e5d140fe62a10a6c3b0"
+PKG_VERSION="71d56507cbc15a455f4f2d7fcd8a4630a2072c38"
+PKG_SHA256="6f5d42351e0821eb5e06fd362d2b6fa9e9128b0a8db6871036c68684fc316f32"
 PKG_LICENSE="MIT"
-PKG_SITE="https://github.com/jjsullivan5196/wvkbd"
-PKG_URL="https://github.com/jjsullivan5196/wvkbd/archive/v${PKG_VERSION}.tar.gz"
+PKG_SITE="https://github.com/CvH/wvkbd"
+PKG_URL="https://github.com/CvH/wvkbd/archive/${PKG_VERSION}.tar.gz"
 PKG_DEPENDS_TARGET="toolchain wayland wayland-protocols libxkbcommon pango cairo"
 PKG_LONGDESC="On-screen virtual keyboard for Wayland"
 PKG_BUILD_FLAGS="-sysroot"

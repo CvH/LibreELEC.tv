@@ -105,3 +105,7 @@ msgstr ""
 msgctxt "#30303"
 msgid "Keyboard height (pixels)"
 msgstr ""
+
+msgctxt "#30304"
+msgid "Enable remote D-pad navigation"
+msgstr ""

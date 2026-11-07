@@ -136,6 +136,14 @@
                         <dependency type="visible" setting="WVKBD_ENABLE" operator="is">true</dependency>
                     </dependencies>
                 </setting>
+                <setting id="WVKBD_DPAD_NAV" type="boolean" label="30304">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                    <dependencies>
+                        <dependency type="visible" setting="WVKBD_ENABLE" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
             </group>
         </category>
     </section>

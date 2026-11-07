@@ -25,5 +25,9 @@ if [ "${WVKBD_START_HIDDEN}" = "true" ]; then
   WVKBD_OPTS="${WVKBD_OPTS} --hidden"
 fi
 
+if [ "${WVKBD_DPAD_NAV:-true}" = "true" ]; then
+  WVKBD_OPTS="${WVKBD_OPTS} --dpad-mode"
+fi
+
 ${addondir}/bin/wvkbd-mobintl ${WVKBD_OPTS} >&2 &
 echo "$!"
