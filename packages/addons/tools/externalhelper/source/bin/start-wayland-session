@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
 
+. /etc/profile
+
+oe_setup_addon tools.externalhelper
+
 if [ -n "${KODI_KEYBOARD_LAYOUT}" ]; then
   export XKB_DEFAULT_LAYOUT="${KODI_KEYBOARD_LAYOUT}"
 fi
@@ -11,8 +15,30 @@ mkdir -p "${XDG_RUNTIME_DIR}"
 chmod 0700 "${XDG_RUNTIME_DIR}"
 
 mydir=$(dirname "$0")
+addondir=$(dirname "$mydir")
+
+# Ensure labwc config directory exists in addon userdata
+LABWC_CONFIG_DIR="${ADDON_HOME}/labwc"
+mkdir -p "${LABWC_CONFIG_DIR}"
+
+# Seed default configs into addon userdata folder if not yet present
+if [ ! -f "${LABWC_CONFIG_DIR}/rc.xml" ]; then
+  cp -a "${addondir}/labwc-config/"* "${LABWC_CONFIG_DIR}/" 2>/dev/null || true
+fi
+
+# Generate session runner script for labwc primary client
+SESSION_RUNNER="${XDG_RUNTIME_DIR}/labwc-session-runner.sh"
+echo '#!/bin/sh' > "${SESSION_RUNNER}"
+printf 'exec "%s/wayland-session-helper"' "${mydir}" >> "${SESSION_RUNNER}"
+for arg in "$@"; do
+  escaped=$(printf '%s\n' "$arg" | sed "s/'/'\\\\''/g")
+  printf " '%s'" "$escaped" >> "${SESSION_RUNNER}"
+done
+echo "" >> "${SESSION_RUNNER}"
+chmod 0700 "${SESSION_RUNNER}"
 
 dbus-run-session -- \
   "${mydir}/seatd-launch" -p "${mydir}/seatd" -- \
-  "${mydir}/cage" -- \
-  "${mydir}/wayland-session-helper" "$@"
+  "${mydir}/labwc" -C "${LABWC_CONFIG_DIR}" -S "${SESSION_RUNNER}"
+
+rm -f "${SESSION_RUNNER}"

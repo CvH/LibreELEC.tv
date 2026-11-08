@@ -1,0 +1,25 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026-present Team LibreELEC (https://libreelec.tv)
+
+. /etc/profile
+
+oe_setup_addon tools.externalhelper
+
+# exit if wvkbd is not enabled
+if [ "${WVKBD_ENABLE}" != "true" ]; then
+  exit 0
+fi
+
+addondir=$(dirname "$(dirname "$0")")
+
+WVKBD_HEIGHT="${WVKBD_HEIGHT:-280}"
+WVKBD_OPTS="--layer overlay -L ${WVKBD_HEIGHT}"
+
+if [ "${WVKBD_START_HIDDEN}" = "true" ]; then
+  WVKBD_OPTS="${WVKBD_OPTS} --hidden"
+fi
+
+${addondir}/bin/wvkbd-mobintl ${WVKBD_OPTS} >&2 &
+echo "$!"
+

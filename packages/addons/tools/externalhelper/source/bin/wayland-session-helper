@@ -34,8 +34,16 @@ KANSHI_PID=$!
 # run WayVNC if enabled
 WAYVNC_PID=$(${addondir}/bin/wayvnc-session-helper)
 
+# run wvkbd if enabled
+WVKBD_PID=$(${addondir}/bin/wvkbd-session-helper)
+
 # continue with the remaining session command
 "$@"
+
+# stop wvkbd when the session ends
+if [ -n "${WVKBD_PID}" ]; then
+  kill -TERM "${WVKBD_PID}"
+fi
 
 # stop kanshi when the session ends
 kill -TERM "${KANSHI_PID}"

@@ -111,5 +111,32 @@
                 </setting>
             </group>
         </category>
+        <category id="virtualkeyboard" label="30300">
+            <group id="1">
+                <setting id="WVKBD_ENABLE" type="boolean" label="30301">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="WVKBD_START_HIDDEN" type="boolean" label="30302">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                    <dependencies>
+                        <dependency type="visible" setting="WVKBD_ENABLE" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+                <setting id="WVKBD_HEIGHT" type="integer" label="30303">
+                    <level>0</level>
+                    <default>280</default>
+                    <control type="edit" format="integer">
+                        <heading>30303</heading>
+                    </control>
+                    <dependencies>
+                        <dependency type="visible" setting="WVKBD_ENABLE" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
     </section>
 </settings>

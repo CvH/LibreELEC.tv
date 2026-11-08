@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<labwc_config>
+  <core>
+    <decoration>none</decoration>
+    <gap>0</gap>
+  </core>
+
+  <theme>
+    <cornerRadius>0</cornerRadius>
+    <keepBorder>no</keepBorder>
+    <maximizedDecoration>none</maximizedDecoration>
+    <dropShadows>no</dropShadows>
+  </theme>
+
+  <windowRules>
+    <windowRule identifier="*" serverDecoration="no">
+      <action name="Maximize" />
+    </windowRule>
+  </windowRules>
+
+  <!-- Disable right-click desktop menu in kiosk mode -->
+  <mouse>
+    <context name="Root">
+    </context>
+  </mouse>
+
+  <keyboard>
+    <!-- Toggle on-screen virtual keyboard (wvkbd) -->
+    <keybind key="C-A-k">
+      <action name="Execute" command="pkill -SIGRTMIN wvkbd-mobintl" />
+    </keybind>
+  </keyboard>
+</labwc_config>
+

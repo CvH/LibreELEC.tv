@@ -88,3 +88,20 @@ msgstr ""
 msgctxt "#30205"
 msgid "Password"
 msgstr ""
+
+# Virtual Keyboard settings
+msgctxt "#30300"
+msgid "Virtual Keyboard"
+msgstr ""
+
+msgctxt "#30301"
+msgid "Enable virtual keyboard"
+msgstr ""
+
+msgctxt "#30302"
+msgid "Start hidden (toggle via Ctrl+Alt+K)"
+msgstr ""
+
+msgctxt "#30303"
+msgid "Keyboard height (pixels)"
+msgstr ""
