@@ -16,8 +16,6 @@ if [ "${WVKBD_ENABLE}" != "true" ]; then
   exit 0
 fi
 
-addondir=$(dirname "$(dirname "$0")")
-
 WVKBD_HEIGHT="${WVKBD_HEIGHT:-280}"
 WVKBD_OPTS="-H ${WVKBD_HEIGHT} -L ${WVKBD_HEIGHT} --non-exclusive"
 
@@ -29,5 +27,5 @@ if [ "${WVKBD_DPAD_NAV:-true}" = "true" ]; then
   WVKBD_OPTS="${WVKBD_OPTS} --dpad-mode"
 fi
 
-${addondir}/bin/wvkbd-mobintl ${WVKBD_OPTS} >&2 &
+"${ADDON_DIR}/bin/wvkbd-mobintl" ${WVKBD_OPTS} >&2 &
 echo "$!"

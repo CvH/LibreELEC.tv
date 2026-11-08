@@ -14,22 +14,19 @@ export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 mkdir -p "${XDG_RUNTIME_DIR}"
 chmod 0700 "${XDG_RUNTIME_DIR}"
 
-mydir=$(dirname "$0")
-addondir=$(dirname "$mydir")
-
-# Ensure labwc config directory exists in addon userdata
-LABWC_CONFIG_DIR="${ADDON_HOME}/labwc"
-mkdir -p "${LABWC_CONFIG_DIR}"
-
-# Seed default configs into addon userdata folder if not yet present
-if [ ! -f "${LABWC_CONFIG_DIR}/rc.xml" ]; then
-  cp -a "${addondir}/labwc-config/"* "${LABWC_CONFIG_DIR}/" 2>/dev/null || true
+# Determine labwc config directory (check user override, fallback to addon default)
+if [ -d "/storage/.config/labwc" ]; then
+  LABWC_CONFIG_DIR="/storage/.config/labwc"
+elif [ -n "${ADDON_HOME}" ] && [ -d "${ADDON_HOME}/labwc" ]; then
+  LABWC_CONFIG_DIR="${ADDON_HOME}/labwc"
+else
+  LABWC_CONFIG_DIR="${ADDON_DIR}/labwc-config"
 fi
 
 # Generate session runner script for labwc primary client
 SESSION_RUNNER="${XDG_RUNTIME_DIR}/labwc-session-runner.sh"
 echo '#!/bin/sh' > "${SESSION_RUNNER}"
-printf 'exec "%s/wayland-session-helper"' "${mydir}" >> "${SESSION_RUNNER}"
+printf 'exec "%s/bin/wayland-session-helper"' "${ADDON_DIR}" >> "${SESSION_RUNNER}"
 for arg in "$@"; do
   escaped=$(printf '%s\n' "$arg" | sed "s/'/'\\\\''/g")
   printf " '%s'" "$escaped" >> "${SESSION_RUNNER}"
@@ -38,7 +35,7 @@ echo "" >> "${SESSION_RUNNER}"
 chmod 0700 "${SESSION_RUNNER}"
 
 dbus-run-session -- \
-  "${mydir}/seatd-launch" -p "${mydir}/seatd" -- \
-  "${mydir}/labwc" -C "${LABWC_CONFIG_DIR}" -S "${SESSION_RUNNER}"
+  "${ADDON_DIR}/bin/seatd-launch" -p "${ADDON_DIR}/bin/seatd" -- \
+  "${ADDON_DIR}/bin/labwc" -C "${LABWC_CONFIG_DIR}" -S "${SESSION_RUNNER}"
 
 rm -f "${SESSION_RUNNER}"
