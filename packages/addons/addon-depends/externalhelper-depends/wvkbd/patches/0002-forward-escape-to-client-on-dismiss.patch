@@ -1,0 +1,92 @@
+From: LibreELEC <team@libreelec.tv>
+Subject: [PATCH] forward escape to client on dismiss
+
+Forward KEY_ESC to the active Wayland client when wvkbd is dismissed
+in dpad mode (via Esc, Exit, Back button, or on-screen Esc key), and
+map remote KEY_BACK to dismiss instead of backspace.
+---
+ main.c | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/main.c b/main.c
+index 908db66..003c505 100644
+--- a/main.c
++++ b/main.c
+@@ -509,7 +509,6 @@ is_repeatable_key(uint32_t key)
+     case BTN_DPAD_LEFT:
+     case BTN_DPAD_RIGHT:
+ #endif
+-    case KEY_BACK:
+     case KEY_BACKSPACE:
+         return true;
+     default:
+@@ -517,6 +516,21 @@ is_repeatable_key(uint32_t key)
+     }
+ }
+ 
++static void
++send_virtual_escape(void)
++{
++    if (!keyboard.vkbd) {
++        return;
++    }
++    uint32_t time = (uint32_t)monotime();
++    wl_display_roundtrip(display);
++    zwp_virtual_keyboard_v1_key(keyboard.vkbd, time, KEY_ESC,
++                                WL_KEYBOARD_KEY_STATE_PRESSED);
++    zwp_virtual_keyboard_v1_key(keyboard.vkbd, time, KEY_ESC,
++                                WL_KEYBOARD_KEY_STATE_RELEASED);
++    wl_display_flush(display);
++}
++
+ static void
+ dpad_action_key(uint32_t key, uint32_t time)
+ {
+@@ -566,6 +580,9 @@ dpad_action_key(uint32_t key, uint32_t time)
+                                   kbd_get_layer_index(&keyboard, k->layout));
+             } else if (k->type == Mod || k->type == Compose) {
+                 kbd_press_key(&keyboard, k, time);
++            } else if (k->type == Code && k->code == KEY_ESC) {
++                hide();
++                send_virtual_escape();
+             } else {
+                 if (layer_surface) {
+                     zwlr_layer_surface_v1_set_keyboard_interactivity(
+@@ -589,6 +606,9 @@ dpad_action_key(uint32_t key, uint32_t time)
+         }
+         break;
+     case KEY_BACK:
++        hide();
++        send_virtual_escape();
++        break;
+     case KEY_BACKSPACE:
+         if (layer_surface) {
+             zwlr_layer_surface_v1_set_keyboard_interactivity(
+@@ -614,6 +634,7 @@ dpad_action_key(uint32_t key, uint32_t time)
+     case KEY_EXIT:
+ #endif
+         hide();
++        send_virtual_escape();
+         break;
+     case KEY_TAB:
+         kbd_next_layer(&keyboard, NULL, false);
+@@ -1136,10 +1157,14 @@ show()
+ void
+ toggle_visibility()
+ {
+-    if (hidden)
++    if (hidden) {
+         show();
+-    else
++    } else {
+         hide();
++        if (keyboard.dpad_mode) {
++            send_virtual_escape();
++        }
++    }
+ }
+ 
+ void
+-- 
+2.53.0
+
