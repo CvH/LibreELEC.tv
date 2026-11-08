@@ -19,7 +19,7 @@ fi
 WVKBD_HEIGHT="${WVKBD_HEIGHT:-280}"
 WVKBD_OPTS="-H ${WVKBD_HEIGHT} -L ${WVKBD_HEIGHT} --non-exclusive"
 
-if [ "${WVKBD_START_HIDDEN}" = "true" ]; then
+if [ "${WVKBD_START_HIDDEN:-true}" = "true" ]; then
   WVKBD_OPTS="${WVKBD_OPTS} --hidden"
 fi
 

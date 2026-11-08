@@ -18,13 +18,14 @@
   </resize>
 
   <windowRules>
-    <windowRule identifier="*" serverDecoration="no" ignoreConfigureRequest="yes" skipWindowSwitcher="yes" skipTaskbar="yes">
+    <windowRule identifier="*" type="normal" serverDecoration="no" skipWindowSwitcher="yes" skipTaskbar="yes">
       <action name="Maximize" />
     </windowRule>
   </windowRules>
 
-  <!-- Kiosk mode: suppress default drag-to-resize/move and desktop menu without swallowing clicks -->
+  <!-- Kiosk mode: retain standard click/focus handling, disable desktop menu -->
   <mouse>
+    <default />
     <context name="Root">
       <mousebind button="Left" action="Press">
         <action name="Focus" />

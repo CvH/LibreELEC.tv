@@ -120,7 +120,7 @@
                 </setting>
                 <setting id="WVKBD_START_HIDDEN" type="boolean" label="30302">
                     <level>0</level>
-                    <default>false</default>
+                    <default>true</default>
                     <control type="toggle" />
                     <dependencies>
                         <dependency type="visible" setting="WVKBD_ENABLE" operator="is">true</dependency>
