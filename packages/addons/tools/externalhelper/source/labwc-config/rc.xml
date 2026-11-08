@@ -55,15 +55,15 @@
       <action name="Exit" />
     </keybind>
 
-    <!-- ALSA Volume controls for remote / keyboard -->
+    <!-- Volume controls (pactl / PipeWire / PulseAudio) -->
     <keybind key="XF86AudioRaiseVolume">
-      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/alsa-volume up" />
+      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/volume-control up" />
     </keybind>
     <keybind key="XF86AudioLowerVolume">
-      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/alsa-volume down" />
+      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/volume-control down" />
     </keybind>
     <keybind key="XF86AudioMute">
-      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/alsa-volume mute" />
+      <action name="Execute" command="/storage/.kodi/addons/tools.externalhelper/bin/volume-control mute" />
     </keybind>
 
     <!-- Toggle on-screen virtual keyboard (wvkbd) via remote or keyboard -->

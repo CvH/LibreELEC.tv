@@ -17,8 +17,6 @@ chmod 0700 "${XDG_RUNTIME_DIR}"
 # Determine labwc config directory (check user override, fallback to addon default)
 if [ -d "/storage/.config/labwc" ]; then
   LABWC_CONFIG_DIR="/storage/.config/labwc"
-elif [ -n "${ADDON_HOME}" ] && [ -d "${ADDON_HOME}/labwc" ]; then
-  LABWC_CONFIG_DIR="${ADDON_HOME}/labwc"
 else
   LABWC_CONFIG_DIR="${ADDON_DIR}/labwc-config"
 fi
